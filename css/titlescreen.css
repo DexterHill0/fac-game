@@ -42,6 +42,7 @@ div[data-ui="titleScreen"] {
     margin-top: auto;
 }
 
+/* https://codepen.io/zoite/pen/gwRZzJ */
 .title-screen-heading:after {
     content: "PIXEL\aHARMONY";
     position: absolute;
@@ -50,7 +51,7 @@ div[data-ui="titleScreen"] {
     clip: rect(0, 900px, 0, 0);
     background-color: #040404;
     color: white;
-    animation: glitch 3s infinite alternate-reverse;
+    animation: glitch-title 3s infinite alternate-reverse;
 }
 .title-screen-heading:before {
     content: "PIXEL\aHARMONY";
@@ -60,10 +61,10 @@ div[data-ui="titleScreen"] {
     clip: rect(0, 900px, 0, 0);
     background-color: #040404;
     color: white;
-    animation: glitch 3s infinite alternate-reverse;
+    animation: glitch-title 3s infinite alternate-reverse;
 }
 
-@keyframes glitch {
+@keyframes glitch-title {
     0% {
         clip: rect(90px, 9999px, 191px, 0);
     }
