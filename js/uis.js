@@ -38,6 +38,7 @@ export class ClickToPlay extends Ui("clickToPlay") {
 
         this.self.addEventListener("click", () => {
             this.state.changeToUi("titleScreen");
+            this.state.playHum();
         });
     }
 }
@@ -59,12 +60,16 @@ export class TitleScreen extends Ui("titleScreen") {
             "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
         ).play();
 
-        new Audio(
-            "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum.flac"
-        )
-            .loop()
-            .playAfter(800);
+        this.state.playingAudio(
+            "hum",
+            new Audio(
+                "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum.flac"
+            )
+                .loop()
+                .play()
+        );
 
+        this.self.style.opacity = 0;
         this.dataHidden(false);
 
         new Animate(this.self)
@@ -108,6 +113,7 @@ export class TitleScreen extends Ui("titleScreen") {
         this.#holdToQuit.addEventListener("completed", () => {
             reset();
 
+            this.state.stopAllAudio();
             this.state.changeToUi("clickToPlay");
         });
     }

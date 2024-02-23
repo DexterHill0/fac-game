@@ -74,7 +74,7 @@ ul {
         translate: 0 0;
     }
     30% {
-        translate: 1px 0;
+        translate: 2px 0;
     }
     40% {
         translate: 0.5px 0;
@@ -89,6 +89,6 @@ ul {
         translate: 1px 0;
     }
     100% {
-        translate: -1px 0;
+        translate: -2px 0;
     }
 }

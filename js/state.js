@@ -1,4 +1,5 @@
 import { ClickToPlay, HowToPlay, TitleScreen } from "./uis.js";
+import Audio, { ActiveAudio } from "./utils/audio.js";
 
 export class HasState {
     state;
@@ -11,6 +12,8 @@ export class HasState {
 export class GameState {
     #currentUi = null;
     #previousUi = null;
+
+    #audios = {};
 
     constructor() {
         this.uis = {
@@ -37,6 +40,30 @@ export class GameState {
 
     previousUi() {
         this.changeToUi(this.#previousUi.id);
+    }
+
+    /**
+     *
+     * @param {string} id
+     * @param {ActiveAudio | Promise<ActiveAudio>} audio
+     */
+    playingAudio(id, audio) {
+        this.#audios[id] = audio;
+    }
+
+    /**
+     *
+     * @param {string} id
+     */
+    stopAudio(id) {
+        this.#audios[id]?.stop();
+    }
+
+    stopAllAudio() {
+        for (const audio of Object.values(this.#audios)) {
+            if (audio instanceof Promise) audio.then((a) => a.stop());
+            else audio.stop();
+        }
     }
 }
 

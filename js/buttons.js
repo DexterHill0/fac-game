@@ -64,7 +64,6 @@ export class ClickyButton extends State(HTMLButtonElement, {
     connectedCallback() {
         const button = document.createElement("button");
         button.classList.add("clicky-button");
-        button.id = this.id;
 
         button.addEventListener("pointerdown", this.#pressStart);
         document.addEventListener("pointerup", this.#pressEnd);
