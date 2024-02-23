@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Founders And Coders game</title>
+        <link rel="stylesheet" href="css/utils.css" />
+        <link rel="stylesheet" href="css/index.css" />
+        <link rel="stylesheet" href="css/hud.css" />
+        <link rel="stylesheet" href="css/titlescreen.css" />
+        <link rel="stylesheet" href="css/clicky_button.css" />
+        <script src="js/utils/animate.js" type="module"></script>
+        <script src="js/index.js" type="module" defer></script>
+        <script src="js/colors.js" type="module"></script>
+        <script src="js/titlescreen.js" type="module" defer></script>
+        <script src="js/clicky_button.js" type="module" defer></script>
+    </head>
+    <body>
+        <div class="noise"></div>
+        <!-- needed to allow auto play of music (user needs to interact with the site) -->
+        <clicky-button id="click-to-begin">CLICK TO PLAY</clicky-button>
+
+        <div data-hidden data-ui="title_screen">
+            <div class="title-screen-flex">
+                <div class="title-screen-container">
+                    <h1
+                        class="title-screen-heading"
+                        data-content="PIXEL HARMONY"
+                    >
+                        PIXEL<br />HARMONY
+                    </h1>
+                    <div class="title-screen-buttons-container">
+                        <clicky-button class="title-screen-button-start">
+                            START
+                        </clicky-button>
+                        <clicky-button class="title-screen-button-tut">
+                            HOW TO PLAY
+                        </clicky-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div data-hidden data-ui="hud">
+            <hud-colors></hud-colors>
+        </div>
+        <canvas id="canvas" />
+    </body>
+</html>
