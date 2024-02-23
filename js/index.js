@@ -24,7 +24,8 @@ window.addEventListener("resize", () => {
 resizeCanvas();
 
 const startButton = document.getElementById("click-to-begin");
-startButton.addEventListener("click", (e) => {
-    startButton.style.visibility = "hidden";
+startButton.addEventListener("click", () => {
+    startButton.setAttribute("data-hidden", "");
+
     showTitleScreen();
 });

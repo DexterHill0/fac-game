@@ -8,14 +8,15 @@
         <link rel="stylesheet" href="css/index.css" />
         <link rel="stylesheet" href="css/hud.css" />
         <link rel="stylesheet" href="css/titlescreen.css" />
-        <link rel="stylesheet" href="css/clicky_button.css" />
+        <link rel="stylesheet" href="css/buttons.css" />
         <script src="js/utils/animate.js" type="module"></script>
         <script src="js/index.js" type="module" defer></script>
         <script src="js/colors.js" type="module"></script>
         <script src="js/titlescreen.js" type="module" defer></script>
-        <script src="js/clicky_button.js" type="module" defer></script>
+        <script src="js/buttons.js" type="module" defer></script>
     </head>
     <body>
+        <div class="dying-noise"></div>
         <div class="noise"></div>
         <!-- needed to allow auto play of music (user needs to interact with the site) -->
         <clicky-button id="click-to-begin">CLICK TO PLAY</clicky-button>
@@ -37,6 +38,11 @@
                             HOW TO PLAY
                         </clicky-button>
                     </div>
+                </div>
+                <div class="click-to-quit-container">
+                    <clicky-hold-button id="click-to-quit" hold-duration="3000"
+                        ><span class="hold-button-blend">QUIT</span>
+                    </clicky-hold-button>
                 </div>
             </div>
         </div>

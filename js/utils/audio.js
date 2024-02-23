@@ -1,3 +1,21 @@
+export class ActiveAudio {
+    #audio = null;
+
+    constructor(audio) {
+        this.#audio = audio;
+    }
+
+    stop() {
+        this.#audio.pause();
+        this.#audio.remove();
+    }
+
+    volume(volume) {
+        this.#audio.volume = volume;
+        return this;
+    }
+}
+
 export default class Audio {
     #src = "";
     #opts = {};
@@ -11,22 +29,38 @@ export default class Audio {
         return this;
     }
 
-    wait(duration) {
-        this.#opts.wait = duration;
+    /**
+     *
+     * @param {number} volume
+     * @returns
+     */
+    volume(volume) {
+        this.#opts.volume = volume;
         return this;
     }
 
+    /**
+     *
+     * @returns {ActiveAudio}
+     */
     play() {
-        const play = () => {
-            const audio = new window.Audio(this.#src);
-            audio.loop = this.#opts.loop;
-            audio.play();
-        };
+        const audio = new window.Audio(this.#src);
+        audio.loop = this.#opts.loop;
+        audio.volume = this.#opts.volume ?? 1;
+        audio.play();
 
-        if (this.#opts.wait != null) {
-            setTimeout(play, this.#opts.wait);
-        } else {
-            play();
-        }
+        return new ActiveAudio(audio);
+    }
+
+    /**
+     *
+     * @returns {Promise<ActiveAudio>}
+     */
+    playAfter() {
+        return new Promise((res) => {
+            setTimeout(() => {
+                res(this.play());
+            }, this.#opts.wait);
+        });
     }
 }

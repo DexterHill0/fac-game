@@ -17,12 +17,18 @@ body {
     position: absolute;
 }
 
-#click-to-begin {
+#click-to-begin,
+#click-to-quit {
     color: white;
     font-size: 30px;
     pointer-events: all;
     z-index: 10;
     animation: jerk 0.01s infinite forwards;
+}
+
+.hold-button-blend {
+    mix-blend-mode: difference;
+    pointer-events: none;
 }
 
 *[data-hidden] {
@@ -40,19 +46,27 @@ body {
     background: transparent url("../assets/noise.PNG") repeat 0 0;
     background-repeat: repeat;
     animation: noise-animation 0.2s infinite;
-    opacity: 1;
-    visibility: visible;
     mix-blend-mode: multiply;
     aspect-ratio: 1/1;
     z-index: 999;
     pointer-events: none;
 }
 
-@media (prefers-reduced-motion) {
-    .noise {
-        animation: none;
-        opacity: 0.45;
-    }
+.dying-noise {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200%;
+    background: transparent url("../assets/noise.PNG") repeat 0 0;
+    background-repeat: repeat;
+    animation: noise-animation 0.2s infinite;
+    aspect-ratio: 1/1;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0;
 }
 
 @keyframes noise-animation {

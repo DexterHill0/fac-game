@@ -1,0 +1,153 @@
+import Audio from "./utils/audio.js";
+import { State } from "./utils/mixins.js";
+
+export class ClickyButton extends State(HTMLButtonElement, {
+    disabled: false,
+    active: false,
+    hover: false,
+}) {
+    innerButton = null;
+
+    constructor() {
+        super();
+    }
+
+    stateChangedCallback(state, _oldValue, newValue) {
+        if (this.innerButton == null) return;
+
+        switch (state) {
+            case "disabled":
+                if (newValue) this.innerButton.setAttribute("disabled", "");
+                else this.innerButton.removeAttribute("disabled");
+                break;
+
+            case "active":
+                if (newValue)
+                    new Audio(
+                        "../assets/sounds/412050__eyenorth__button-click_down.wav"
+                    ).play();
+                else
+                    new Audio(
+                        "../assets/sounds/412050__eyenorth__button-click_up.wav"
+                    ).play();
+                break;
+
+            default:
+                this.innerButton.setAttribute(state, newValue);
+        }
+    }
+
+    // using arrow functions because otherwise `this` is the wrong value
+    #pressStart = () => {
+        if (!this.disabled) this.active = true;
+    };
+
+    #pressEnd = () => {
+        if (!this.disabled && this.active) this.active = false;
+    };
+
+    #hoverStart = () => {
+        if (!this.disabled) {
+            this.hover = true;
+
+            new Audio(
+                "../assets/sounds/540269__zepurple__hover-over-a-button.wav"
+            ).play();
+        }
+    };
+
+    #hoverEnd = () => {
+        if (!this.disabled) this.hover = false;
+    };
+
+    connectedCallback() {
+        const button = document.createElement("button");
+        button.classList.add("clicky-button");
+        button.id = this.id;
+
+        button.addEventListener("pointerdown", this.#pressStart);
+        document.addEventListener("pointerup", this.#pressEnd);
+        button.addEventListener("mouseenter", this.#hoverStart);
+        button.addEventListener("mouseout", this.#hoverEnd);
+
+        for (const child of this.childNodes) {
+            button.appendChild(child);
+        }
+
+        this.innerButton = button;
+
+        this.appendChild(button);
+
+        // re triggers the callback
+        this.disabled = this.disabled;
+    }
+
+    // attributeChangedCallback(name, _oldValue, newValue) {
+    //     if (name == "disabled") {
+    //         this.disabled = newValue;
+    //     }
+    // }
+
+    // static get observedAttributes() {
+    //     return ["disabled"];
+    // }
+}
+
+customElements.define("clicky-button", ClickyButton, { extends: "button" });
+
+export class ClickyHoldButton extends ClickyButton {
+    #interval = null;
+    #currentHold = 0;
+    #holdDuration = 0;
+
+    constructor() {
+        super();
+
+        this.#holdDuration = parseInt(this.getAttribute("hold-duration"));
+    }
+
+    stateChangedCallback(state, oldValue, newValue) {
+        super.stateChangedCallback(state, oldValue, newValue);
+
+        const reset = () => {
+            this.#currentHold = 0;
+            clearInterval(this.#interval);
+            this.innerButton.style.background = "transparent";
+        };
+
+        if (this.active) {
+            reset();
+
+            this.dispatchEvent(new CustomEvent("start"));
+
+            this.#interval = setInterval(() => {
+                this.#currentHold += 5;
+                if (this.#currentHold >= this.#holdDuration / 5) {
+                    reset();
+                    this.active = false;
+                    this.dispatchEvent(new CustomEvent("completed"));
+                    return;
+                }
+
+                const percent =
+                    (this.#currentHold / (this.#holdDuration / 5)) * 100;
+                this.innerButton.style.background = `linear-gradient(90deg, #fff ${percent}%, transparent ${percent}%)`;
+
+                this.dispatchEvent(
+                    new CustomEvent("progress", { detail: percent })
+                );
+            }, 5);
+        } else if (!this.active && this.#currentHold > 0) {
+            this.dispatchEvent(new CustomEvent("cancelled"));
+            reset();
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+    }
+}
+
+customElements.define("clicky-hold-button", ClickyHoldButton, {
+    extends: "button",
+});
