@@ -22,6 +22,7 @@ export class ClickyButton extends State(HTMLButtonElement, {
                 break;
 
             case "active":
+                this.innerButton.setAttribute("active", newValue);
                 if (newValue)
                     new Audio(
                         "../assets/sounds/412050__eyenorth__button-click_down.wav"
@@ -115,7 +116,7 @@ export class ClickyHoldButton extends ClickyButton {
             this.innerButton.style.background = "transparent";
         };
 
-        if (this.active) {
+        if (this.active && this.hover) {
             reset();
 
             this.dispatchEvent(new CustomEvent("start"));
@@ -137,7 +138,7 @@ export class ClickyHoldButton extends ClickyButton {
                     new CustomEvent("progress", { detail: percent })
                 );
             }, 5);
-        } else if (!this.active && this.#currentHold > 0) {
+        } else if ((!this.active || !this.hover) && this.#currentHold > 0) {
             this.dispatchEvent(new CustomEvent("cancelled"));
             reset();
         }

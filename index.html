@@ -9,19 +9,23 @@
         <link rel="stylesheet" href="css/hud.css" />
         <link rel="stylesheet" href="css/titlescreen.css" />
         <link rel="stylesheet" href="css/buttons.css" />
+        <link rel="stylesheet" href="css/howtoplay.css" />
         <script src="js/utils/animate.js" type="module"></script>
         <script src="js/index.js" type="module" defer></script>
         <script src="js/colors.js" type="module"></script>
-        <script src="js/titlescreen.js" type="module" defer></script>
         <script src="js/buttons.js" type="module" defer></script>
+        <script src="js/uis.js" type="module" defer></script>
+        <script src="js/state.js" type="module" defer></script>
     </head>
     <body>
-        <div class="dying-noise"></div>
+        <div class="dying-noise" data-ui="dyingNoise"></div>
         <div class="noise"></div>
         <!-- needed to allow auto play of music (user needs to interact with the site) -->
-        <clicky-button id="click-to-begin">CLICK TO PLAY</clicky-button>
+        <clicky-button data-hidden id="click-to-begin" data-ui="clickToPlay"
+            >CLICK TO PLAY</clicky-button
+        >
 
-        <div data-hidden data-ui="title_screen">
+        <div data-hidden data-ui="titleScreen">
             <div class="title-screen-flex">
                 <div class="title-screen-container">
                     <h1
@@ -31,10 +35,16 @@
                         PIXEL<br />HARMONY
                     </h1>
                     <div class="title-screen-buttons-container">
-                        <clicky-button class="title-screen-button-start">
+                        <clicky-button
+                            id="start"
+                            class="title-screen-button-start"
+                        >
                             START
                         </clicky-button>
-                        <clicky-button class="title-screen-button-tut">
+                        <clicky-button
+                            id="how-to-play"
+                            class="title-screen-button-tut"
+                        >
                             HOW TO PLAY
                         </clicky-button>
                     </div>
@@ -46,6 +56,20 @@
                 </div>
             </div>
         </div>
+
+        <div data-hidden data-ui="howToPlay">
+            <div class="how-to-play-flex">
+                <div class="how-to-play-heading-container">
+                    <h1 class="how-to-play-heading">HOW TO PLAY</h1>
+                </div>
+                <div class="how-to-play-button-back-container">
+                    <clicky-button id="back" class="how-to-play-button-back">
+                        BACK
+                    </clicky-button>
+                </div>
+            </div>
+        </div>
+
         <div data-hidden data-ui="hud">
             <hud-colors></hud-colors>
         </div>

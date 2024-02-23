@@ -1,6 +1,3 @@
-import { showTitleScreen } from "./titlescreen.js";
-import Audio from "./utils/audio.js";
-
 const canvas = document.getElementById("canvas");
 
 if (canvas == null) throw Error("canvas is null");
@@ -22,10 +19,3 @@ window.addEventListener("resize", () => {
 });
 
 resizeCanvas();
-
-const startButton = document.getElementById("click-to-begin");
-startButton.addEventListener("click", () => {
-    startButton.setAttribute("data-hidden", "");
-
-    showTitleScreen();
-});
