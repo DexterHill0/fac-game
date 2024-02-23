@@ -38,7 +38,6 @@ export class ClickToPlay extends Ui("clickToPlay") {
 
         this.self.addEventListener("click", () => {
             this.state.changeToUi("titleScreen");
-            this.state.playHum();
         });
     }
 }
@@ -56,9 +55,12 @@ export class TitleScreen extends Ui("titleScreen") {
     }
 
     show() {
-        new Audio(
-            "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
-        ).play();
+        const fromStart = this.state.previousUi.id == "clickToPlay";
+
+        if (fromStart)
+            new Audio(
+                "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
+            ).play();
 
         this.state.playingAudio(
             "hum",
@@ -73,9 +75,9 @@ export class TitleScreen extends Ui("titleScreen") {
         this.dataHidden(false);
 
         new Animate(this.self)
-            .from({ opacity: 0 })
-            .to({ opacity: 1 })
-            .duration(4000)
+            .from({ opacity: 0, scale: 2 })
+            .to({ opacity: 1, scale: 1 })
+            .duration(fromStart ? 4000 : 0)
             .easing(EASINGS.CUBIC_IN_OUT)
             .begin();
     }
@@ -129,8 +131,8 @@ export class HowToPlay extends Ui("howToPlay") {
     }
 
     #listenForBack() {
-        this.#back.addEventListener("click", () => this.state.previousUi());
+        this.#back.addEventListener("click", () =>
+            this.state.changeTopreviousUi()
+        );
     }
 }
-
-export class DyingNoise extends Ui("dyingNoise") {}

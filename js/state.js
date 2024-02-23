@@ -11,7 +11,7 @@ export class HasState {
 
 export class GameState {
     #currentUi = null;
-    #previousUi = null;
+    previousUi = null;
 
     #audios = {};
 
@@ -23,13 +23,13 @@ export class GameState {
         };
 
         this.#currentUi = this.uis.clickToPlay;
-        this.#previousUi = this.#currentUi;
+        this.previousUi = this.#currentUi;
 
         this.#currentUi.show();
     }
 
     changeToUi(id) {
-        this.#previousUi = this.#currentUi;
+        this.previousUi = this.#currentUi;
 
         this.#currentUi.hide();
 
@@ -38,8 +38,8 @@ export class GameState {
         this.#currentUi.show();
     }
 
-    previousUi() {
-        this.changeToUi(this.#previousUi.id);
+    changeTopreviousUi() {
+        this.changeToUi(this.previousUi.id);
     }
 
     /**
@@ -48,6 +48,7 @@ export class GameState {
      * @param {ActiveAudio | Promise<ActiveAudio>} audio
      */
     playingAudio(id, audio) {
+        if (this.#audios[id] != undefined) this.#audios[id].stop();
         this.#audios[id] = audio;
     }
 
