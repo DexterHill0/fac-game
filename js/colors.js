@@ -1,3 +1,8 @@
+import { random } from "./utils/math.js";
+import { Ui } from "./uis.js";
+
+const TOTAL_COLS = 5;
+
 export const STARTING_COLS = [
     {
         color: [255, 0, 0],
@@ -13,27 +18,47 @@ export const STARTING_COLS = [
     },
 ];
 
-// make a custom element that stores the colours and displays them
-export class Colors extends HTMLUListElement {
-    #colors = [];
+export function* getRandomColor(minColors, maxColours) {
+    while (true) {
+        let amount = random(minColors, maxColours);
 
-    /**
-     *
-     * @param {{ color: string, key: string }} defaultColors
-     */
-    constructor() {
-        super();
-    }
+        let color = STARTING_COLS[random(0, STARTING_COLS.length - 1)].color;
 
-    static get observedAttributes() {
-        return ["colors"];
-    }
-
-    attributeChangedCallback(name, _oldValue, newValue) {
-        if (name == "colors") {
-            this.#colors = JSON.parse(newValue);
+        for (let i = 0; i < amount; i++) {
+            yield color;
         }
     }
 }
 
-customElements.define("hud-colors", Colors, { extends: "ul" });
+export class Colors extends Ui("colorsHud") {
+    colors = STARTING_COLS;
+    #colButtons = Array(5)
+        .fill(null)
+        .map((_, i) => document.getElementById(`color-${i + 1}`));
+
+    selectedColor = null;
+
+    constructor(state) {
+        super(state);
+    }
+
+    onReady() {
+        document.addEventListener("keydown", (e) => {
+            if (parseInt(e.key) <= this.colors.length) {
+                this.#onSelectedColor(parseInt(e.key));
+            }
+        });
+
+        for (let i = 1; i <= this.#colButtons.length; i++) {
+            this.#colButtons[i - 1].addEventListener("click", () => {
+                if (i <= this.colors.length) this.#onSelectedColor(i);
+            });
+        }
+    }
+
+    #onSelectedColor(i) {
+        this.state.getAudio("beep").play();
+
+        this.selectedColor = this.colors[i - 1];
+    }
+}

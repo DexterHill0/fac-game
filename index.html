@@ -12,11 +12,11 @@
         <link rel="stylesheet" href="css/howtoplay.css" />
         <script src="js/utils/animate.js" type="module"></script>
         <script src="js/index.js" type="module" defer></script>
-        <script src="js/colors.js" type="module"></script>
+        <script src="js/state.js" type="module" defer></script>
         <script src="js/buttons.js" type="module" defer></script>
         <script src="js/uis.js" type="module" defer></script>
-        <script src="js/state.js" type="module" defer></script>
         <script src="js/canvas.js" type="module" defer></script>
+        <script src="js/colors.js" type="module"></script>
     </head>
     <body>
         <div class="scanlines"></div>
@@ -67,9 +67,30 @@
             </div>
         </div>
 
-        <div data-hidden data-ui="hud">
-            <hud-colors></hud-colors>
+        <div data-ui="colorsHud">
+            <div class="colors-hud-container">
+                <button class="color-hud-color-button" id="color-1">
+                    <div class="color-hud-color" style="--color: #ff0000"></div>
+                    <p class="color-hud-color-label">1</p>
+                </button>
+                <button class="color-hud-color-button" id="color-2">
+                    <div class="color-hud-color" style="--color: #00ff00"></div>
+                    <p class="color-hud-color-label">2</p>
+                </button>
+                <button class="color-hud-color-button" id="color-3">
+                    <div class="color-hud-color" style="--color: #0000ff"></div>
+                    <p class="color-hud-color-label">3</p>
+                </button>
+                <button class="color-hud-color-button" data-locked id="color-4">
+                    <div class="color-hud-color" style="--color: #000000"></div>
+                    <p class="color-hud-color-label">???</p>
+                </button>
+                <button class="color-hud-color-button" data-locked id="color-5">
+                    <div class="color-hud-color" style="--color: #000000"></div>
+                    <p class="color-hud-color-label">???</p>
+                </button>
+            </div>
         </div>
-        <canvas id="canvas" />
+        <canvas id="canvas" data-ui="canvas" />
     </body>
 </html>

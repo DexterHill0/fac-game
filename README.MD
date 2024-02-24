@@ -3,3 +3,5 @@ loopable 60Hz synthesized domestic video artifact VCR CRT buzz hum: https://free
 Button Click: https://freesound.org/people/eyenorth/sounds/412050/
 hover over a button.wav: https://freesound.org/people/zepurple/sounds/540269/
 White Noise -20dBFS 30 Second.wav: https://freesound.org/people/JarredGibb/sounds/249313/
+hiss and beep.wav: https://freesound.org/people/lartti/sounds/504761/
+simulated CRT TV power off/on [remix of freesound #519627].wav: https://freesound.org/people/Timbre/sounds/519981/

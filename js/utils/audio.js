@@ -16,16 +16,30 @@ export class ActiveAudio {
     }
 }
 
-export default class Audio {
-    #src = "";
-    #opts = {};
+export class AudioSource {
+    #audio;
 
     constructor(src) {
-        this.#src = src;
+        this.#audio = new window.Audio(src);
+    }
+
+    /**
+     * @return {Audio}
+     */
+    getAudio() {
+        return new AudioPlayer(this.#audio.cloneNode());
+    }
+}
+
+export default class AudioPlayer {
+    #audio;
+
+    constructor(audio) {
+        this.#audio = audio;
     }
 
     loop() {
-        this.#opts.loop = true;
+        this.#audio.loop = true;
         return this;
     }
 
@@ -35,7 +49,7 @@ export default class Audio {
      * @returns
      */
     volume(volume) {
-        this.#opts.volume = volume;
+        this.#audio.volume = volume;
         return this;
     }
 
@@ -44,23 +58,21 @@ export default class Audio {
      * @returns {ActiveAudio}
      */
     play() {
-        const audio = new window.Audio(this.#src);
-        audio.loop = this.#opts.loop;
-        audio.volume = this.#opts.volume ?? 1;
-        audio.play();
+        this.#audio.play();
 
-        return new ActiveAudio(audio);
+        return new ActiveAudio(this.#audio);
     }
 
     /**
      *
+     * @param {number} time
      * @returns {Promise<ActiveAudio>}
      */
-    playAfter() {
+    playAfter(time) {
         return new Promise((res) => {
             setTimeout(() => {
                 res(this.play());
-            }, this.#opts.wait);
+            }, time);
         });
     }
 }

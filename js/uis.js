@@ -1,14 +1,22 @@
+import { Canvas } from "./canvas.js";
 import Animate, { EASINGS } from "./utils/animate.js";
-import Audio from "./utils/audio.js";
-import { HasState } from "./state.js";
+
+export class HasState {
+    state;
+
+    constructor(state) {
+        this.state = state;
+    }
+}
 
 const id = document.getElementById.bind(document);
 const query = document.querySelector.bind(document);
 
-const Ui = (id) =>
+export const Ui = (id) =>
     class _Inner extends HasState {
         static ID = id;
         #self = null;
+        #listeners = [];
 
         get self() {
             if (this.#self == null) this.#self = query(`[data-ui='${id}']`);
@@ -28,52 +36,91 @@ const Ui = (id) =>
             this.dataHidden(false);
         }
         hide() {
+            this.removeAllListeners();
             this.dataHidden(true);
+        }
+
+        addListener(element, type, cb) {
+            element.addEventListener(type, cb);
+            this.#listeners.push({ element, type, cb });
+        }
+
+        removeAllListeners() {
+            for (const listener of this.#listeners) {
+                listener.element.removeEventListener(
+                    listener.type,
+                    listener.cb
+                );
+            }
         }
     };
 
 export class ClickToPlay extends Ui("clickToPlay") {
-    constructor(state) {
-        super(state);
-
-        this.self.addEventListener("click", () => {
+    show() {
+        this.addListener(this.self, "click", () => {
             this.state.changeToUi("titleScreen");
         });
+        super.show();
     }
 }
 
 export class TitleScreen extends Ui("titleScreen") {
-    #dyingNoise = query(".dying-noise");
     #holdToQuit = id("click-to-quit");
     #howToPlay = id("how-to-play");
     #start = id("start");
 
-    constructor(state) {
-        super(state);
+    #humAudio = null;
 
-        this.#listenForQuit();
-        this.#listenForHowToPlay();
-        this.#listenForStart();
+    hide(to) {
+        if (to == Canvas.ID) {
+            this.setButtonsDisabled(true);
+
+            new Animate(this.self)
+                .from({ scale: 1 })
+                .to({ scale: 10 })
+                .duration(0) //6000
+                .easing(EASINGS.QUART_IN_OUT)
+                .begin();
+
+            return new Promise((res) => {
+                new Animate(this.self)
+                    .from({ opacity: 1 })
+                    .to({ opacity: 0 })
+                    .duration(0) // 4000
+                    .easing(EASINGS.CUBIC_IN_OUT)
+                    .begin()
+                    .then(() => {
+                        super.hide();
+                        this.setButtonsDisabled(false);
+                        res();
+                    });
+            });
+        } else {
+            super.hide();
+        }
+    }
+
+    setButtonsDisabled(disabled) {
+        this.#holdToQuit.disabled = disabled;
+        this.#howToPlay.disabled = disabled;
+        this.#start.disabled = disabled;
     }
 
     show() {
-        const fromStart = this.state.previousUi.id == "clickToPlay";
+        this.#listenForQuit();
+        this.#listenForHowToPlay();
+        this.#listenForStart();
 
-        if (fromStart)
-            new Audio(
-                "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
-            ).play();
+        const fromStart =
+            this.state.previousUiId == (ClickToPlay.ID || Canvas.ID);
 
-        this.state.playingAudio(
-            "hum",
-            new Audio(
-                "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum.flac"
-            )
-                .loop()
-                .play()
-        );
+        if (fromStart) this.state.getAudio("monitorStartup").play();
+
+        this.#humAudio = this.state.getAudio("hum").loop().play();
 
         this.self.style.opacity = 0;
+        this.setButtonsDisabled(true);
+
         this.dataHidden(false);
 
         new Animate(this.self)
@@ -81,50 +128,37 @@ export class TitleScreen extends Ui("titleScreen") {
             .to({ opacity: 1, scale: 1 })
             .duration(fromStart ? 4000 : 0)
             .easing(EASINGS.CUBIC_IN_OUT)
-            .begin();
+            .begin()
+            .then(() => {
+                this.setButtonsDisabled(false);
+            });
     }
 
     #listenForHowToPlay() {
-        this.#howToPlay.addEventListener("click", () => {
+        this.addListener(this.#howToPlay, "click", () => {
             this.state.changeToUi("howToPlay");
         });
     }
 
     #listenForQuit() {
-        let whiteNoise = null;
+        this.addListener(this.#holdToQuit, "cancelled", () =>
+            this.state.uis.dyingNoise.reset()
+        );
 
-        this.#holdToQuit.addEventListener("start", () => {
-            whiteNoise = new Audio(
-                "../assets/sounds/249313__jarredgibb__white-noise-20dbfs-30-second.wav"
-            )
-                .loop()
-                .volume(0)
-                .play();
+        this.addListener(this.#holdToQuit, "progress", (e) => {
+            this.state.uis.dyingNoise.setDeathProgress(e.detail);
         });
-
-        const reset = () => {
-            this.#dyingNoise.style.opacity = 0;
-            whiteNoise.stop();
-            whiteNoise = null;
-        };
-
-        this.#holdToQuit.addEventListener("cancelled", reset);
-
-        this.#holdToQuit.addEventListener("progress", (e) => {
-            this.#dyingNoise.style.opacity = `${e.detail}%`;
-            whiteNoise.volume(e.detail / 100);
-        });
-        this.#holdToQuit.addEventListener("completed", () => {
-            reset();
-
-            this.state.stopAllAudio();
+        this.addListener(this.#holdToQuit, "completed", () => {
+            this.#humAudio.stop();
+            this.state.uis.dyingNoise.reset();
+            this.state.getAudio("monitorShutdown").play();
             this.state.changeToUi("clickToPlay");
         });
     }
 
     #listenForStart() {
-        this.#start.addEventListener("click", () => {
-            this.hide();
+        this.addListener(this.#start, "click", () => {
+            this.state.changeToUi("canvas");
         });
     }
 }
@@ -132,15 +166,31 @@ export class TitleScreen extends Ui("titleScreen") {
 export class HowToPlay extends Ui("howToPlay") {
     #back = id("back");
 
-    constructor(state) {
-        super(state);
-
+    show() {
         this.#listenForBack();
+        super.show();
     }
 
     #listenForBack() {
-        this.#back.addEventListener("click", () =>
+        this.addListener(this.#back, "click", () =>
             this.state.changeTopreviousUi()
         );
     }
+}
+
+export class DyingNoise extends Ui("dyingNoise") {
+    #noise = this.state.getAudio("whitenoise").loop().volume(0).play();
+
+    setDeathProgress(progress) {
+        this.self.style.opacity = `${progress}%`;
+        this.#noise.volume(progress / 100);
+    }
+
+    reset() {
+        this.self.style.opacity = 0;
+        this.#noise.volume(0);
+    }
+
+    hide() {}
+    show() {}
 }

@@ -1,5 +1,6 @@
 import Audio from "./utils/audio.js";
 import { State } from "./utils/mixins.js";
+import { currentState } from "./state.js";
 
 export class ClickyButton extends State(HTMLElement, {
     disabled: false,
@@ -23,14 +24,8 @@ export class ClickyButton extends State(HTMLElement, {
 
             case "active":
                 this.innerButton.setAttribute("active", newValue);
-                if (newValue)
-                    new Audio(
-                        "../assets/sounds/412050__eyenorth__button-click_down.wav"
-                    ).play();
-                else
-                    new Audio(
-                        "../assets/sounds/412050__eyenorth__button-click_up.wav"
-                    ).play();
+                if (newValue) currentState.getAudio("buttonDown").play();
+                else currentState.getAudio("buttonUp").play();
                 break;
 
             default:
@@ -51,9 +46,7 @@ export class ClickyButton extends State(HTMLElement, {
         if (!this.disabled) {
             this.hover = true;
 
-            new Audio(
-                "../assets/sounds/540269__zepurple__hover-over-a-button.wav"
-            ).play();
+            currentState.getAudio("buttonHover").play();
         }
     };
 
