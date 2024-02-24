@@ -25,7 +25,7 @@ export class GameState {
         this.#currentUi = this.uis.clickToPlay;
         this.previousUi = this.#currentUi;
 
-        this.#currentUi.show();
+        // this.#currentUi.show();
     }
 
     changeToUi(id) {

@@ -46,12 +46,14 @@ export class TitleScreen extends Ui("titleScreen") {
     #dyingNoise = query(".dying-noise");
     #holdToQuit = id("click-to-quit");
     #howToPlay = id("how-to-play");
+    #start = id("start");
 
     constructor(state) {
         super(state);
 
         this.#listenForQuit();
         this.#listenForHowToPlay();
+        this.#listenForStart();
     }
 
     show() {
@@ -117,6 +119,12 @@ export class TitleScreen extends Ui("titleScreen") {
 
             this.state.stopAllAudio();
             this.state.changeToUi("clickToPlay");
+        });
+    }
+
+    #listenForStart() {
+        this.#start.addEventListener("click", () => {
+            this.hide();
         });
     }
 }

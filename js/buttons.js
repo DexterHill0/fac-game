@@ -1,7 +1,7 @@
 import Audio from "./utils/audio.js";
 import { State } from "./utils/mixins.js";
 
-export class ClickyButton extends State(HTMLButtonElement, {
+export class ClickyButton extends State(HTMLElement, {
     disabled: false,
     active: false,
     hover: false,
@@ -82,18 +82,17 @@ export class ClickyButton extends State(HTMLButtonElement, {
         this.disabled = this.disabled;
     }
 
-    // attributeChangedCallback(name, _oldValue, newValue) {
-    //     if (name == "disabled") {
-    //         this.disabled = newValue;
-    //     }
-    // }
+    attributeChangedCallback(name, _oldValue, newValue) {
+        if (name == "disabled") {
+            this.disabled = newValue;
+        }
+    }
 
-    // static get observedAttributes() {
-    //     return ["disabled"];
-    // }
+    static get observedAttributes() {
+        return ["disabled"];
+    }
 }
-
-customElements.define("clicky-button", ClickyButton, { extends: "button" });
+customElements.define("clicky-button", ClickyButton);
 
 export class ClickyHoldButton extends ClickyButton {
     #interval = null;
@@ -148,6 +147,4 @@ export class ClickyHoldButton extends ClickyButton {
     }
 }
 
-customElements.define("clicky-hold-button", ClickyHoldButton, {
-    extends: "button",
-});
+customElements.define("clicky-hold-button", ClickyHoldButton);

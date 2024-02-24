@@ -1,15 +1,15 @@
 export const STARTING_COLS = [
     {
-        color: "#ff0000",
+        color: [255, 0, 0],
         key: "1",
     },
     {
-        color: "#00ff00",
-        key: "1",
+        color: [0, 255, 0],
+        key: "2",
     },
     {
-        color: "#00ff00",
-        key: "1",
+        color: [0, 0, 255],
+        key: "3",
     },
 ];
 
