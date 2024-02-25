@@ -1,28 +1,25 @@
 import { random } from "./utils/math.js";
+import { displayTimer } from "./utils/util.js";
 import { Ui } from "./uis.js";
 
-const TOTAL_COLS = 5;
-
-export const STARTING_COLS = [
-    {
-        color: [255, 0, 0],
-        key: "1",
-    },
-    {
-        color: [0, 255, 0],
-        key: "2",
-    },
-    {
-        color: [0, 0, 255],
-        key: "3",
-    },
+const EXTRA_COLS = [
+    [255, 0, 255],
+    [0, 255, 255],
+    [255, 255, 0],
+    [255, 255, 255],
 ];
 
-export function* getRandomColor(minColors, maxColours) {
+const STARTING_COLS = [
+    [255, 0, 0],
+    [0, 255, 0],
+    [0, 0, 255],
+];
+
+function* colorGenerator(minColors, maxColours, colors) {
     while (true) {
         let amount = random(minColors, maxColours);
 
-        let color = STARTING_COLS[random(0, STARTING_COLS.length - 1)].color;
+        let color = colors[random(0, colors.length - 1)];
 
         for (let i = 0; i < amount; i++) {
             yield color;
@@ -30,16 +27,52 @@ export function* getRandomColor(minColors, maxColours) {
     }
 }
 
-export class Colors extends Ui("colorsHud") {
-    colors = STARTING_COLS;
+export class Colors extends Ui("hud") {
+    #bestTime = document.getElementById("hud-best-time");
+
+    #usedColors = [];
+    colors = [...STARTING_COLS];
     #colButtons = Array(5)
         .fill(null)
         .map((_, i) => document.getElementById(`color-${i + 1}`));
 
     selectedColor = null;
 
-    constructor(state) {
-        super(state);
+    hide() {
+        super.hide();
+
+        for (let i = STARTING_COLS.length; i < this.colors.length; i++) {
+            this.#colButtons[i].children[1].replaceChildren(
+                document.createTextNode("???")
+            );
+        }
+
+        this.#usedColors = [];
+        this.colors = [...STARTING_COLS];
+        this.selectedColor = null;
+    }
+
+    addNewColor() {
+        let index = -1;
+        while (true) {
+            index = random(0, EXTRA_COLS.length - 1);
+            if (!this.#usedColors.includes(index)) break;
+        }
+
+        this.#usedColors.push(index);
+        this.colors.push(EXTRA_COLS[index]);
+
+        console.log(this.colors);
+
+        this.#updateButton(this.colors.length - 1);
+    }
+
+    #updateButton(index) {
+        const button = this.#colButtons[index];
+
+        button.removeAttribute("data-locked");
+        button.style.cssText = `--color: rgb(${this.colors[index].join(",")})`;
+        button.children[1].replaceChildren(document.createTextNode(index + 1));
     }
 
     show() {
@@ -62,5 +95,17 @@ export class Colors extends Ui("colorsHud") {
         this.state.getAudio("beep").play();
 
         this.selectedColor = this.colors[i - 1];
+    }
+
+    colorGenerator(min, max) {
+        return colorGenerator(min, max, this.colors);
+    }
+
+    updateBestTime(time) {
+        this.state.bestTime = time;
+
+        this.#bestTime.replaceChildren(
+            document.createTextNode(displayTimer(time))
+        );
     }
 }

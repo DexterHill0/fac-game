@@ -7,6 +7,8 @@ export class GameState {
     #currentUi = null;
     #previousUi = null;
 
+    bestTime = localStorage.getItem("bestTime") ?? 0;
+
     #audios = {
         whitenoise: new AudioSource(
             "../assets/sounds/249313__jarredgibb__white-noise-20dbfs-30-second.wav"
@@ -79,6 +81,10 @@ export class GameState {
      */
     getAudio(id) {
         return this.#audios[id].getAudio();
+    }
+
+    saveBestTime() {
+        localStorage.setItem("bestTime", this.bestTime);
     }
 }
 

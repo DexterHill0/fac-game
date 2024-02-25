@@ -23,7 +23,11 @@
         <div class="dying-noise" data-ui="dyingNoise"></div>
         <div class="noise"></div>
         <!-- needed to allow auto play of music (user needs to interact with the site) -->
-        <clicky-button data-hidden id="click-to-begin" data-ui="clickToPlay"
+        <clicky-button
+            data-hidden
+            id="click-to-begin"
+            class="jerk"
+            data-ui="clickToPlay"
             >CLICK TO PLAY</clicky-button
         >
 
@@ -46,6 +50,10 @@
                         </clicky-button>
                     </div>
                 </div>
+                <div class="best-time-container">
+                    <span>Best Time: &nbsp; </span
+                    ><span id="best-time">--:--</span>
+                </div>
                 <div class="click-to-quit-container">
                     <clicky-hold-button id="click-to-quit" hold-duration="2000"
                         ><span class="hold-button-blend">QUIT</span>
@@ -67,28 +75,50 @@
             </div>
         </div>
 
-        <div data-hidden data-ui="colorsHud">
+        <div data-hidden data-ui="hud">
             <div class="colors-hud-container">
-                <button class="color-hud-color-button" id="color-1">
-                    <div class="color-hud-color" style="--color: #ff0000"></div>
+                <button
+                    class="color-hud-color-button"
+                    id="color-1"
+                    style="--color: #ff0000"
+                >
+                    <div class="color-hud-color"></div>
                     <p class="color-hud-color-label">1</p>
                 </button>
                 <button class="color-hud-color-button" id="color-2">
                     <div class="color-hud-color" style="--color: #00ff00"></div>
                     <p class="color-hud-color-label">2</p>
                 </button>
-                <button class="color-hud-color-button" id="color-3">
-                    <div class="color-hud-color" style="--color: #0000ff"></div>
+                <button
+                    class="color-hud-color-button"
+                    id="color-3"
+                    style="--color: #0000ff"
+                >
+                    <div class="color-hud-color"></div>
                     <p class="color-hud-color-label">3</p>
                 </button>
-                <button class="color-hud-color-button" data-locked id="color-4">
-                    <div class="color-hud-color" style="--color: #000000"></div>
+                <button
+                    class="color-hud-color-button"
+                    data-locked
+                    id="color-4"
+                    style="--color: #000000"
+                >
+                    <div class="color-hud-color"></div>
                     <p class="color-hud-color-label">???</p>
                 </button>
-                <button class="color-hud-color-button" data-locked id="color-5">
-                    <div class="color-hud-color" style="--color: #000000"></div>
+                <button
+                    class="color-hud-color-button"
+                    data-locked
+                    id="color-5"
+                    style="--color: #000000"
+                >
+                    <div class="color-hud-color"></div>
                     <p class="color-hud-color-label">???</p>
                 </button>
+            </div>
+            <div class="hud-best-time-container">
+                <span>Best Time: &nbsp; </span
+                ><span id="hud-best-time">--:--</span>
             </div>
         </div>
         <canvas id="canvas" data-ui="canvas" />

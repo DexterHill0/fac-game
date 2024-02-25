@@ -41,6 +41,11 @@ div[data-ui="titleScreen"] {
     margin-top: auto;
 }
 
+.best-time-container {
+    padding: 30px;
+    font-size: 35px;
+}
+
 /* https://codepen.io/zoite/pen/gwRZzJ */
 .title-screen-heading:after {
     content: "GAME";

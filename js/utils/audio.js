@@ -5,6 +5,11 @@ export class ActiveAudio {
         this.#audio = audio;
     }
 
+    stopAfter(duration) {
+        setTimeout(() => this.stop(), duration);
+        return this;
+    }
+
     stop() {
         this.#audio.pause();
         this.#audio.remove();

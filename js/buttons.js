@@ -115,7 +115,7 @@ export class ClickyHoldButton extends ClickyButton {
             let startTime = 0;
 
             const hold = (t) => {
-                if (!this.active) {
+                if (!this.active || !this.hover) {
                     reset();
                     this.dispatchEvent(new CustomEvent("cancelled"));
                     return;

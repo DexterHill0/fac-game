@@ -1,5 +1,6 @@
 import { Canvas } from "./canvas.js";
 import Animate, { EASINGS } from "./utils/animate.js";
+import { displayTimer } from "./utils/util.js";
 
 export class HasState {
     state;
@@ -73,6 +74,8 @@ export class TitleScreen extends Ui("titleScreen") {
     #howToPlay = id("how-to-play");
     #start = id("start");
 
+    #bestTime = id("best-time");
+
     #humAudio = null;
 
     hide(to) {
@@ -127,6 +130,12 @@ export class TitleScreen extends Ui("titleScreen") {
         this.#setButtonsDisabled(true);
 
         this.dataHidden(false);
+
+        this.state.saveBestTime();
+
+        this.#bestTime.replaceChildren(
+            document.createTextNode(displayTimer(this.state.bestTime))
+        );
 
         new Animate(this.self)
             .from({ opacity: 0, scale: 2 })

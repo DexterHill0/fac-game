@@ -1,8 +1,8 @@
-import { map, easeInExpo } from "./utils/math.js";
+import { map, easeInExpo, random } from "./utils/math.js";
 // import { STARTING_COLS } from "./colors.js";
 // import Audio from "./utils/audio.js";
 import { Ui } from "./uis.js";
-import { getRandomColor } from "./colors.js";
+// import { getRandomColor } from "./colors.js";
 
 const PIXEL_SIZE = 60;
 const PIXEL_SPACING = 5;
@@ -36,7 +36,13 @@ const pixelCoordFromIdx = (idx) => ({
     x: idx % WIDTH,
     y: Math.floor(idx / WIDTH),
 });
-const pixelIdxFromCoord = ({ x, y }) => y * WIDTH + x;
+const pixelIdxFromCoord = ([x, y]) => y * WIDTH + x;
+
+const sortPixels = () => {
+    userPixels = userPixels.sort((a, b) =>
+        pixelIdxFromCoord(a) > pixelCoordFromIdx(b) ? -1 : 1
+    );
+};
 
 class Pixel {
     litTime = 0;
@@ -73,7 +79,7 @@ export class Canvas extends Ui("canvas") {
     #nextTime = 0;
     #nextPixel = 0;
 
-    #colorGen = getRandomColor(5, 9);
+    #colorGen = null;
     /**
      * @type {Pixel[][]}
      */
@@ -92,8 +98,8 @@ export class Canvas extends Ui("canvas") {
 
     #currentDeathTime = 0;
 
-    #hasMissedFirstPixel = false;
-    #previousUserPixelIdx = 0;
+    #hasMissedPixel = false;
+    #previousUserPixelIdx = -1;
 
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
@@ -111,10 +117,7 @@ export class Canvas extends Ui("canvas") {
     #cumulativeEasing(forPixel) {
         return Math.max(
             ...userPixels.map((coord) =>
-                this.#bellCurveEasing(
-                    forPixel,
-                    pixelIdxFromCoord({ x: coord[0], y: coord[1] })
-                )
+                this.#bellCurveEasing(forPixel, pixelIdxFromCoord(coord))
             )
         );
     }
@@ -145,7 +148,7 @@ export class Canvas extends Ui("canvas") {
     hide() {
         cancelAnimationFrame(this.#currentAnimationCb);
 
-        this.state.uis.colorsHud.hide();
+        this.state.uis.hud.hide();
 
         this.#time = 0;
         this.#currentDeathTime = 0;
@@ -160,12 +163,14 @@ export class Canvas extends Ui("canvas") {
             for (const pixel of pixels) pixel.reset();
 
         this.self.classList.remove("jerk");
-        this.state.uis.colorsHud.self.classList.remove("jerk");
+        this.state.uis.hud.self.classList.remove("jerk");
 
         super.hide();
     }
 
     #draw = (t) => {
+        this.state.uis.hud.updateBestTime(t);
+
         const width = this.self.width;
         const height = this.self.height;
 
@@ -177,25 +182,28 @@ export class Canvas extends Ui("canvas") {
             let { x, y } = this.#getLitPixel();
 
             if (this.#nextPixel == 0) {
-                this.#hasMissedFirstPixel = false;
-                this.#previousUserPixelIdx = 0;
+                this.#hasMissedPixel = false;
+                this.#previousUserPixelIdx = -1;
             }
 
             if (this.#pixels[x][y].isUserPixel) {
-                const selectedColor =
-                    this.state.uis.colorsHud.selectedColor?.color;
+                const selectedColor = this.state.uis.hud.selectedColor;
 
                 let correctColor = this.#pixelAtIdx(
-                    pixelIdxFromCoord({ x, y }) - 1
+                    pixelIdxFromCoord([x, y]) - 1
                 ).color;
 
-                console.log(this.#previousUserPixelIdx);
+                if (this.#hasMissedPixel) {
+                    this.#hasMissedPixel = false;
+                    this.#pixels[x][y].color = [0, 0, 0];
 
-                if (this.#hasMissedFirstPixel) {
-                    this.#hasMissedFirstPixel = false;
-                    this.#pixels[x][y].color = [176, 141, 46];
-                    this.state.getAudio("miss").play();
-                    this.state.uis.colorsHud.selectedColor = null;
+                    this.state
+                        .getAudio("whitenoise")
+                        .volume(1)
+                        .play()
+                        .stopAfter(200);
+
+                    this.state.uis.hud.selectedColor = null;
                 } else {
                     if (
                         selectedColor != null &&
@@ -204,23 +212,20 @@ export class Canvas extends Ui("canvas") {
                         selectedColor[2] == correctColor[2]
                     ) {
                         this.#pixels[x][y].color = correctColor;
-                        this.#currentDeathTime -= TIME_TO_DIE / 10;
-                        this.state.uis.colorsHud.selectedColor = null;
+                        this.#currentDeathTime = 0;
+                        this.state.uis.hud.selectedColor = null;
                     } else {
-                        const currentUserPixel =
-                            userPixels[userPixelIndex(x, y)];
-                        const pixelIdx =
-                            currentUserPixel[0] * WIDTH + currentUserPixel[0];
+                        const pixelIdx = userPixelIndex(x, y);
 
                         if (pixelIdx > this.#previousUserPixelIdx) {
-                            this.#hasMissedFirstPixel = true;
+                            this.#hasMissedPixel = true;
                             this.#previousUserPixelIdx = pixelIdx;
                         }
 
                         this.state.getAudio("miss").play();
                         this.#pixels[x][y].color = [128, 128, 128];
                         this.#currentDeathTime += 50;
-                        this.state.uis.colorsHud.selectedColor = null;
+                        this.state.uis.hud.selectedColor = null;
                     }
                 }
             }
@@ -235,7 +240,7 @@ export class Canvas extends Ui("canvas") {
 
         const min = Math.min(width, height);
 
-        this.#ctx.translate(width / 2, height / 2);
+        this.#ctx.translate(width / 2, (height / 2) * 1.1);
         this.#ctx.scale(min / 1200, min / 1200);
 
         for (let x = 0; x < WIDTH; x++) {
@@ -245,12 +250,67 @@ export class Canvas extends Ui("canvas") {
                 this.#ctx.beginPath();
                 this.#ctx.strokeStyle = "transparent";
 
-                this.#ctx.rect(
-                    x * (PIXEL_SIZE + PIXEL_SPACING) - SCREEN_WIDTH / 2,
-                    y * (PIXEL_SIZE + PIXEL_SPACING) - SCREEN_HEIGHT / 2,
-                    PIXEL_SIZE,
-                    PIXEL_SIZE
+                let cornerX =
+                    x * (PIXEL_SIZE + PIXEL_SPACING) - SCREEN_WIDTH / 2;
+                let cornerY =
+                    y * (PIXEL_SIZE + PIXEL_SPACING) - SCREEN_HEIGHT / 2;
+                const DIV = 2;
+
+                const transform = (tx, ty) => {
+                    let d = Math.hypot(tx, ty);
+                    let mod = Math.exp(-((d / 800) ** 2)) * 0.5 + 0.75;
+                    return [tx * mod, ty * mod];
+                };
+
+                const next = userPixels[this.#previousUserPixelIdx + 1];
+
+                const drawLine = (x0, y0, x1, y1) => {
+                    for (let i = 0; i < DIV; i++) {
+                        let p = (i + 1) / DIV;
+
+                        let [tx, ty] = [0, 0];
+
+                        if (
+                            next != undefined &&
+                            pixel.isUserPixel &&
+                            this.#hasMissedPixel &&
+                            this.#nextPixel == pixelIdxFromCoord([x, y]) &&
+                            next[0] == x &&
+                            next[1] == y
+                        ) {
+                            [tx, ty] = transform(
+                                random(-1, 2) + (x1 - x0) * p,
+                                -random(-1, 2) - (y0 - y1) * -p
+                            );
+                        } else {
+                            [tx, ty] = transform(
+                                x0 + (x1 - x0) * p,
+                                y0 + (y1 - y0) * p
+                            );
+                        }
+
+                        this.#ctx.lineTo(tx, ty);
+                    }
+                };
+
+                let [cornerXT, cornerYT] = transform(cornerX, cornerY);
+                this.#ctx.moveTo(cornerXT, cornerYT);
+                drawLine(cornerX, cornerY, cornerX + PIXEL_SIZE, cornerY);
+                drawLine(
+                    cornerX + PIXEL_SIZE,
+                    cornerY,
+                    cornerX + PIXEL_SIZE,
+                    cornerY + PIXEL_SIZE
                 );
+                drawLine(
+                    cornerX + PIXEL_SIZE,
+                    cornerY + PIXEL_SIZE,
+                    cornerX,
+                    cornerY + PIXEL_SIZE
+                );
+                drawLine(cornerX, cornerY + PIXEL_SIZE, cornerX, cornerY);
+
+                this.#ctx.closePath();
 
                 if (pixel.isUserPixel) {
                     this.#ctx.lineWidth = 4;
@@ -285,13 +345,19 @@ export class Canvas extends Ui("canvas") {
     };
 
     show() {
-        super.show();
+        sortPixels();
+
+        this.state.uis.hud.addNewColor();
 
         this.self.classList.add("jerk");
-        this.state.uis.colorsHud.self.classList.add("jerk");
+        this.state.uis.hud.self.classList.add("jerk");
 
-        this.state.uis.colorsHud.show();
+        this.state.uis.hud.show();
 
         this.#currentAnimationCb = requestAnimationFrame(this.#draw);
+
+        this.#colorGen = this.state.uis.hud.colorGenerator(5, 9);
+
+        super.show();
     }
 }

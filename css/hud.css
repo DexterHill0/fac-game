@@ -1,4 +1,4 @@
-div[data-ui="colorsHud"] {
+div[data-ui="hud"] {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -43,4 +43,14 @@ div[data-ui="colorsHud"] {
 .color-hud-color-button[data-locked] .color-hud-color,
 .color-hud-color-button[data-locked] .color-hud-color-label {
     opacity: 0.5;
+}
+
+.hud-best-time-container {
+    position: absolute;
+    color: white;
+    font-size: 35px;
+    height: 6rem;
+    display: flex;
+    align-items: center;
+    left: 30px;
 }
