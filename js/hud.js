@@ -29,6 +29,7 @@ function* colorGenerator(minColors, maxColours, colors) {
 
 export class Colors extends Ui("hud") {
     #bestTime = document.getElementById("hud-best-time");
+    #currentTime = 0;
 
     #usedColors = [];
     colors = [...STARTING_COLS];
@@ -41,6 +42,11 @@ export class Colors extends Ui("hud") {
     hide() {
         super.hide();
 
+        if (this.#currentTime > this.state.bestTime) {
+            this.state.bestTime = this.#currentTime;
+            this.state.saveBestTime();
+        }
+
         for (let i = STARTING_COLS.length; i < this.colors.length; i++) {
             this.#colButtons[i].children[1].replaceChildren(
                 document.createTextNode("???")
@@ -50,6 +56,7 @@ export class Colors extends Ui("hud") {
         this.#usedColors = [];
         this.colors = [...STARTING_COLS];
         this.selectedColor = null;
+        this.#currentTime = 0;
     }
 
     addNewColor() {
@@ -61,8 +68,6 @@ export class Colors extends Ui("hud") {
 
         this.#usedColors.push(index);
         this.colors.push(EXTRA_COLS[index]);
-
-        console.log(this.colors);
 
         this.#updateButton(this.colors.length - 1);
     }
@@ -102,7 +107,7 @@ export class Colors extends Ui("hud") {
     }
 
     updateBestTime(time) {
-        this.state.bestTime = time;
+        this.#currentTime = time;
 
         this.#bestTime.replaceChildren(
             document.createTextNode(displayTimer(time))

@@ -16,7 +16,7 @@
         <script src="js/buttons.js" type="module" defer></script>
         <script src="js/uis.js" type="module" defer></script>
         <script src="js/canvas.js" type="module" defer></script>
-        <script src="js/colors.js" type="module"></script>
+        <script src="js/hud.js" type="module"></script>
     </head>
     <body>
         <div class="scanlines"></div>
@@ -66,6 +66,46 @@
             <div class="how-to-play-flex">
                 <div class="how-to-play-heading-container jerk">
                     <h1 class="how-to-play-heading">HOW TO PLAY</h1>
+                </div>
+                <div class="how-to-play-content">
+                    <h2 class="how-to-play-h2">Objective</h2>
+                    <p class="how-to-play-p">
+                        You are just a mere pixel in a scanline, tasked with
+                        matching the colors of the pixels that precede you. Your
+                        goal is simple: synchronise with the rhythm of the
+                        scanline and create a harmonious cascade of colors.
+                    </p>
+                    <p class="how-to-play-p">
+                        As the scanline progresses, coloured pixels will appear
+                        one after another. Your job is to replicate the color of
+                        the pixel immediately preceding you. Time your actions
+                        carefully and stay in tune.
+                    </p>
+
+                    <h2 class="how-to-play-h2">Controls</h2>
+
+                    <ul class="how-to-play-p">
+                        <li class="how-to-play-li">
+                            Use the numbers 1 to 5 on your keyboard to select
+                            the colour that matches the preceding pixel.
+                        </li>
+                    </ul>
+                    <p class="how-to-play-p">
+                        <b
+                            >NOTE: At the start of the game, only colours 1 to 3
+                            are available. Pay attention for when a new colour
+                            is unlocked!</b
+                        >
+                    </p>
+
+                    <p class="how-to-play-p">
+                        But beware! Missing a color match comes with
+                        consequences. You'll also incur a penalty that pushes
+                        you closer to failure. The longer you struggle to find
+                        the correct color, the more the screen will fill with
+                        noise, obscuring your path to success. As you progress,
+                        the pace quickens, and the challenges intensify.
+                    </p>
                 </div>
                 <div class="how-to-play-button-back-container jerk">
                     <clicky-button id="back" class="how-to-play-button-back">

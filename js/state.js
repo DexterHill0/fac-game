@@ -1,5 +1,5 @@
 import { Canvas } from "./canvas.js";
-import { Colors } from "./colors.js";
+import { Colors } from "./hud.js";
 import { ClickToPlay, DyingNoise, HowToPlay, TitleScreen } from "./uis.js";
 import AudioPlayer, { AudioSource } from "./utils/audio.js";
 

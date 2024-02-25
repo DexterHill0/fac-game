@@ -1,8 +1,8 @@
-import { map, easeInExpo, random } from "./utils/math.js";
-// import { STARTING_COLS } from "./colors.js";
+import { map, easeInExpo, random, easeInQuart, wrap } from "./utils/math.js";
+// import { STARTING_COLS } from "./hud.js";
 // import Audio from "./utils/audio.js";
 import { Ui } from "./uis.js";
-// import { getRandomColor } from "./colors.js";
+// import { getRandomColor } from "./hud.js";
 
 const PIXEL_SIZE = 60;
 const PIXEL_SPACING = 5;
@@ -13,12 +13,11 @@ const SCREEN_WIDTH = WIDTH * PIXEL_SIZE + (WIDTH - 1) * PIXEL_SPACING;
 const SCREEN_HEIGHT = HEIGHT * PIXEL_SIZE + (HEIGHT - 1) * PIXEL_SPACING;
 // how long before the noise is at its peak
 // the noise does not fade in linearlly
-const TIME_TO_DIE = 25000;
+const TIME_TO_DIE = 2500000;
+const MIN_CHALLENGE_TIME = 12;
+const MAX_CHALLENGE_TIME = 20;
 
-let userPixels = [
-    [Math.floor(WIDTH / 2) + 2, Math.floor(HEIGHT / 2)],
-    [Math.floor(WIDTH / 2) - 1, Math.floor(HEIGHT / 2)],
-];
+let userPixels = [[Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2)]];
 
 const isUserPixel = (x, y) => {
     return userPixels.some((p) => p[0] == x && p[1] == y);
@@ -26,10 +25,6 @@ const isUserPixel = (x, y) => {
 
 const isWithinRangeOfUserPixel = (x, y, range) => {
     return userPixels.some((p) => p[0] - range <= x && p[1] == y);
-};
-
-const userPixelIndex = (x, y) => {
-    return userPixels.findIndex(([x1, y1]) => x1 == x && y1 == y);
 };
 
 const pixelCoordFromIdx = (idx) => ({
@@ -47,8 +42,6 @@ const sortPixels = () => {
 class Pixel {
     litTime = 0;
     color = [0, 0, 0];
-    // is a pixel that the user is controlling?
-    isUserPixel = false;
 
     reset() {
         this.litTime = 0;
@@ -61,11 +54,22 @@ class Pixel {
         return Math.pow(t, 2);
     }
 
-    constructor(x, y, time) {
+    constructor(time) {
         this.litTime = time;
-        this.isUserPixel = isUserPixel(x, y);
     }
 }
+
+const ALL_CHALLENGES = [
+    "extraPixel",
+    "color",
+    "color",
+    "area",
+    "speed",
+    "decThreshold",
+    "filter",
+    // "dontPress",
+];
+let challenges = [...ALL_CHALLENGES];
 
 export class Canvas extends Ui("canvas") {
     #currentAnimationCb = null;
@@ -75,9 +79,16 @@ export class Canvas extends Ui("canvas") {
      */
     #ctx = this.self.getContext("2d");
 
-    #time = 0;
+    #startTime = 0;
+    get #time() {
+        return Date.now() / 1000 - this.#startTime;
+    }
     #nextTime = 0;
     #nextPixel = 0;
+
+    #minChallengeTime = MIN_CHALLENGE_TIME;
+    #maxChallengeTime = MAX_CHALLENGE_TIME;
+    #nextChallengeTime = random(this.#minChallengeTime, this.#maxChallengeTime);
 
     #colorGen = null;
     /**
@@ -98,11 +109,14 @@ export class Canvas extends Ui("canvas") {
 
     #currentDeathTime = 0;
 
-    #hasMissedPixel = false;
-    #previousUserPixelIdx = -1;
+    #bellCurveArea = 18;
+    #litTimeSpeed = 0.12;
 
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
+        if (y == -1) {
+            console.log(`pinor ${x} ${y} ${idx}`);
+        }
         return this.#pixels[x][y];
     }
 
@@ -110,8 +124,11 @@ export class Canvas extends Ui("canvas") {
     // a given pixel, and then speed back up again very quickly
     #bellCurveEasing(forPixel, userPixel) {
         let t =
-            (100 / 2) * Math.exp(-Math.pow((forPixel - userPixel) / 20, 2) / 2);
-        return map(t, 1.1, 50, 0.005, 0.08);
+            (100 / 2) *
+            Math.exp(
+                -Math.pow((forPixel - userPixel) / this.#bellCurveArea, 2) / 2
+            );
+        return map(t, 1.1, 50, 0.005, this.#litTimeSpeed);
     }
     // calculates the easings for multiple pixels
     #cumulativeEasing(forPixel) {
@@ -145,17 +162,68 @@ export class Canvas extends Ui("canvas") {
         return { x, y };
     }
 
+    #randomFilter(cb) {
+        const filters = ["sepia", "contrast", "saturate"];
+        const filter = filters[random(0, filters.length)];
+        const percent = random(0, 50);
+        const duration = random(2, 6);
+
+        this.self.style.filter = `${filter}(${percent}%)`;
+        setTimeout(() => {
+            this.self.style.filter = "none";
+            cb();
+        }, duration * 1000);
+    }
+
+    #createChallenge() {
+        const index = random(0, challenges.length - 1);
+        const challenge = challenges[index];
+
+        switch (challenge) {
+            case "extraPixel":
+                const [x, y] = [random(0, WIDTH - 1), random(0, HEIGHT - 1)];
+                if (!userPixels.some((v) => v[0] == x && v[1] == y)) {
+                    userPixels.push([x, y]);
+                    sortPixels();
+                }
+                break;
+            case "color":
+                this.state.uis.hud.addNewColor();
+                challenges.splice(index, 1);
+                break;
+            case "speed":
+                this.#litTimeSpeed *= 0.9375;
+                break;
+            case "area":
+                this.#bellCurveArea *= 0.9;
+                break;
+            case "decThreshold":
+                this.#colorChangeThreshold--;
+                break;
+            case "filter":
+                // dont allow other filters to be applied while there is an active filter
+                challenges.splice(index, 1);
+                this.#randomFilter(() => challenges.push("filter"));
+                break;
+            // case "dontPress":
+            //     break;
+        }
+    }
+
     hide() {
         cancelAnimationFrame(this.#currentAnimationCb);
 
         this.state.uis.hud.hide();
 
-        this.#time = 0;
+        this.state.uis.hud.updateBestTime(0);
+
         this.#currentDeathTime = 0;
         this.#colorChangeThreshold = COLOR_CHANGE_THRESHOLD;
         this.#color = null;
         this.#nextTime = 0;
         this.#nextPixel = 0;
+        this.#minChallengeTime = MIN_CHALLENGE_TIME;
+        this.#maxChallengeTime = MAX_CHALLENGE_TIME;
 
         this.#ctx.clearRect(0, 0, this.self.width, this.self.height);
 
@@ -168,65 +236,52 @@ export class Canvas extends Ui("canvas") {
         super.hide();
     }
 
-    #draw = (t) => {
-        this.state.uis.hud.updateBestTime(t);
+    #draw = () => {
+        this.state.uis.hud.updateBestTime(this.#time * 1000);
 
         const width = this.self.width;
         const height = this.self.height;
 
-        this.#time = t / 1000;
-
         this.#currentDeathTime += 1;
 
+        this.#minChallengeTime -= 0.00008;
+        this.#maxChallengeTime -= 0.00008;
+
+        if (this.#time >= this.#nextChallengeTime) {
+            this.#createChallenge();
+            this.#nextChallengeTime =
+                this.#time +
+                random(this.#minChallengeTime, this.#maxChallengeTime);
+        }
+
+        // console.log(this.#nextTime);
         if (this.#time >= this.#nextTime) {
             let { x, y } = this.#getLitPixel();
 
-            if (this.#nextPixel == 0) {
-                this.#hasMissedPixel = false;
-                this.#previousUserPixelIdx = -1;
-            }
-
-            if (this.#pixels[x][y].isUserPixel) {
+            if (isUserPixel(x, y)) {
                 const selectedColor = this.state.uis.hud.selectedColor;
 
                 let correctColor = this.#pixelAtIdx(
-                    pixelIdxFromCoord([x, y]) - 1
+                    wrap(pixelIdxFromCoord([x, y]) - 1, 0, WIDTH * HEIGHT)
                 ).color;
 
-                if (this.#hasMissedPixel) {
-                    this.#hasMissedPixel = false;
-                    this.#pixels[x][y].color = [0, 0, 0];
-
-                    this.state
-                        .getAudio("whitenoise")
-                        .volume(1)
-                        .play()
-                        .stopAfter(200);
-
+                if (
+                    selectedColor != null &&
+                    selectedColor[0] == correctColor[0] &&
+                    selectedColor[1] == correctColor[1] &&
+                    selectedColor[2] == correctColor[2]
+                ) {
+                    this.#pixels[x][y].color = correctColor;
+                    this.#currentDeathTime = Math.max(
+                        0,
+                        this.#currentDeathTime - 100
+                    );
                     this.state.uis.hud.selectedColor = null;
                 } else {
-                    if (
-                        selectedColor != null &&
-                        selectedColor[0] == correctColor[0] &&
-                        selectedColor[1] == correctColor[1] &&
-                        selectedColor[2] == correctColor[2]
-                    ) {
-                        this.#pixels[x][y].color = correctColor;
-                        this.#currentDeathTime = 0;
-                        this.state.uis.hud.selectedColor = null;
-                    } else {
-                        const pixelIdx = userPixelIndex(x, y);
-
-                        if (pixelIdx > this.#previousUserPixelIdx) {
-                            this.#hasMissedPixel = true;
-                            this.#previousUserPixelIdx = pixelIdx;
-                        }
-
-                        this.state.getAudio("miss").play();
-                        this.#pixels[x][y].color = [128, 128, 128];
-                        this.#currentDeathTime += 50;
-                        this.state.uis.hud.selectedColor = null;
-                    }
+                    this.state.getAudio("miss").play();
+                    this.#pixels[x][y].color = [128, 128, 128];
+                    this.#currentDeathTime += 50;
+                    this.state.uis.hud.selectedColor = null;
                 }
             }
 
@@ -262,32 +317,14 @@ export class Canvas extends Ui("canvas") {
                     return [tx * mod, ty * mod];
                 };
 
-                const next = userPixels[this.#previousUserPixelIdx + 1];
-
                 const drawLine = (x0, y0, x1, y1) => {
                     for (let i = 0; i < DIV; i++) {
                         let p = (i + 1) / DIV;
 
-                        let [tx, ty] = [0, 0];
-
-                        if (
-                            next != undefined &&
-                            pixel.isUserPixel &&
-                            this.#hasMissedPixel &&
-                            this.#nextPixel == pixelIdxFromCoord([x, y]) &&
-                            next[0] == x &&
-                            next[1] == y
-                        ) {
-                            [tx, ty] = transform(
-                                random(-1, 2) + (x1 - x0) * p,
-                                -random(-1, 2) - (y0 - y1) * -p
-                            );
-                        } else {
-                            [tx, ty] = transform(
-                                x0 + (x1 - x0) * p,
-                                y0 + (y1 - y0) * p
-                            );
-                        }
+                        let [tx, ty] = transform(
+                            x0 + (x1 - x0) * p,
+                            y0 + (y1 - y0) * p
+                        );
 
                         this.#ctx.lineTo(tx, ty);
                     }
@@ -312,7 +349,7 @@ export class Canvas extends Ui("canvas") {
 
                 this.#ctx.closePath();
 
-                if (pixel.isUserPixel) {
+                if (isUserPixel(x, y)) {
                     this.#ctx.lineWidth = 4;
                     this.#ctx.strokeStyle = "white";
                 }
@@ -345,10 +382,6 @@ export class Canvas extends Ui("canvas") {
     };
 
     show() {
-        sortPixels();
-
-        this.state.uis.hud.addNewColor();
-
         this.self.classList.add("jerk");
         this.state.uis.hud.self.classList.add("jerk");
 
@@ -357,6 +390,8 @@ export class Canvas extends Ui("canvas") {
         this.#currentAnimationCb = requestAnimationFrame(this.#draw);
 
         this.#colorGen = this.state.uis.hud.colorGenerator(5, 9);
+
+        this.#startTime = Date.now() / 1000;
 
         super.show();
     }

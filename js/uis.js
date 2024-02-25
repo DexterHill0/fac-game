@@ -131,8 +131,6 @@ export class TitleScreen extends Ui("titleScreen") {
 
         this.dataHidden(false);
 
-        this.state.saveBestTime();
-
         this.#bestTime.replaceChildren(
             document.createTextNode(displayTimer(this.state.bestTime))
         );
