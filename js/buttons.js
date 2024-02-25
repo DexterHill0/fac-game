@@ -103,7 +103,7 @@ export class ClickyHoldButton extends ClickyButton {
 
         const reset = () => {
             this.#currentHold = 0;
-            clearInterval(this.#interval);
+            cancelAnimationFrame(this.#interval);
             this.innerButton.style.background = "transparent";
         };
 
@@ -112,23 +112,38 @@ export class ClickyHoldButton extends ClickyButton {
 
             this.dispatchEvent(new CustomEvent("start"));
 
-            this.#interval = setInterval(() => {
-                this.#currentHold += 5;
-                if (this.#currentHold >= this.#holdDuration / 5) {
+            let startTime = 0;
+
+            const hold = (t) => {
+                if (!this.active) {
+                    reset();
+                    this.dispatchEvent(new CustomEvent("cancelled"));
+                    return;
+                }
+
+                let elapsed = t - startTime;
+
+                if (elapsed > this.#holdDuration) {
                     reset();
                     this.active = false;
                     this.dispatchEvent(new CustomEvent("completed"));
                     return;
                 }
 
-                const percent =
-                    (this.#currentHold / (this.#holdDuration / 5)) * 100;
+                const percent = (elapsed / this.#holdDuration) * 100;
                 this.innerButton.style.background = `linear-gradient(90deg, #fff ${percent}%, transparent ${percent}%)`;
 
                 this.dispatchEvent(
                     new CustomEvent("progress", { detail: percent })
                 );
-            }, 5);
+
+                this.#interval = requestAnimationFrame(hold);
+            };
+
+            this.#interval = requestAnimationFrame((t) => {
+                startTime = t;
+                hold(t);
+            });
         } else if ((!this.active || !this.hover) && this.#currentHold > 0) {
             this.dispatchEvent(new CustomEvent("cancelled"));
             reset();

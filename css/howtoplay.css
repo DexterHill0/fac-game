@@ -25,13 +25,11 @@ div[data-ui="howToPlay"] {
     font-size: 100px;
     position: relative;
     text-align: center;
-    animation: jerk 0.01s infinite forwards;
 }
 
 .how-to-play-button-back-container {
     padding: 30px;
     margin-top: auto;
-    animation: jerk 0.01s infinite forwards;
 }
 
 .how-to-play-button-back {

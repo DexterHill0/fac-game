@@ -66,6 +66,10 @@ ul {
     padding: 0;
 }
 
+.jerk {
+    animation: jerk 0.01s infinite forwards;
+}
+
 @keyframes jerk {
     0% {
         translate: -1px 0;

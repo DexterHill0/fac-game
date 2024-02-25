@@ -14,7 +14,6 @@ div[data-ui="titleScreen"] {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    animation: jerk 0.01s infinite forwards;
 }
 
 .title-screen-container {

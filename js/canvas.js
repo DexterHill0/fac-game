@@ -13,7 +13,7 @@ const SCREEN_WIDTH = WIDTH * PIXEL_SIZE + (WIDTH - 1) * PIXEL_SPACING;
 const SCREEN_HEIGHT = HEIGHT * PIXEL_SIZE + (HEIGHT - 1) * PIXEL_SPACING;
 // how long before the noise is at its peak
 // the noise does not fade in linearlly
-const TIME_TO_DIE = 10000;
+const TIME_TO_DIE = 25000;
 
 let userPixels = [
     [Math.floor(WIDTH / 2) + 2, Math.floor(HEIGHT / 2)],
@@ -93,7 +93,7 @@ export class Canvas extends Ui("canvas") {
     #currentDeathTime = 0;
 
     #hasMissedFirstPixel = false;
-    #previousUserPixel = 0;
+    #previousUserPixelIdx = 0;
 
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
@@ -159,6 +159,9 @@ export class Canvas extends Ui("canvas") {
         for (const pixels of this.#pixels)
             for (const pixel of pixels) pixel.reset();
 
+        this.self.classList.remove("jerk");
+        this.state.uis.colorsHud.self.classList.remove("jerk");
+
         super.hide();
     }
 
@@ -173,6 +176,11 @@ export class Canvas extends Ui("canvas") {
         if (this.#time >= this.#nextTime) {
             let { x, y } = this.#getLitPixel();
 
+            if (this.#nextPixel == 0) {
+                this.#hasMissedFirstPixel = false;
+                this.#previousUserPixelIdx = 0;
+            }
+
             if (this.#pixels[x][y].isUserPixel) {
                 const selectedColor =
                     this.state.uis.colorsHud.selectedColor?.color;
@@ -181,14 +189,13 @@ export class Canvas extends Ui("canvas") {
                     pixelIdxFromCoord({ x, y }) - 1
                 ).color;
 
-                const currentUserPixel = userPixelIndex(x, y);
-
-                console.log(currentUserPixel);
+                console.log(this.#previousUserPixelIdx);
 
                 if (this.#hasMissedFirstPixel) {
-                    console.log("HEJRE");
-                    this.#hasMissedFirstPixel;
+                    this.#hasMissedFirstPixel = false;
                     this.#pixels[x][y].color = [176, 141, 46];
+                    this.state.getAudio("miss").play();
+                    this.state.uis.colorsHud.selectedColor = null;
                 } else {
                     if (
                         selectedColor != null &&
@@ -200,8 +207,14 @@ export class Canvas extends Ui("canvas") {
                         this.#currentDeathTime -= TIME_TO_DIE / 10;
                         this.state.uis.colorsHud.selectedColor = null;
                     } else {
-                        if (currentUserPixel == 0) {
+                        const currentUserPixel =
+                            userPixels[userPixelIndex(x, y)];
+                        const pixelIdx =
+                            currentUserPixel[0] * WIDTH + currentUserPixel[0];
+
+                        if (pixelIdx > this.#previousUserPixelIdx) {
                             this.#hasMissedFirstPixel = true;
+                            this.#previousUserPixelIdx = pixelIdx;
                         }
 
                         this.state.getAudio("miss").play();
@@ -210,16 +223,8 @@ export class Canvas extends Ui("canvas") {
                         this.state.uis.colorsHud.selectedColor = null;
                     }
                 }
-            } else {
-                const selectedColor =
-                    this.state.uis.colorsHud.selectedColor?.color;
-
-                if (selectedColor != null) {
-                    this.state.getAudio("miss").play();
-                    this.#currentDeathTime += 50;
-                    this.state.uis.colorsHud.selectedColor = null;
-                }
             }
+
             this.#nextTime =
                 this.#time + this.#cumulativeEasing(this.#nextPixel);
         }
@@ -281,6 +286,10 @@ export class Canvas extends Ui("canvas") {
 
     show() {
         super.show();
+
+        this.self.classList.add("jerk");
+        this.state.uis.colorsHud.self.classList.add("jerk");
+
         this.state.uis.colorsHud.show();
 
         this.#currentAnimationCb = requestAnimationFrame(this.#draw);

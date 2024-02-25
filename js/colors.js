@@ -46,8 +46,7 @@ export class Colors extends Ui("colorsHud") {
         super.show();
 
         window.addEventListener("keydown", (e) => {
-            console.log(e.key);
-            if (parseInt(e.key) <= this.colors.length) {
+            if (parseInt(e.key) <= this.colors.length && !e.repeat) {
                 this.#onSelectedColor(parseInt(e.key));
             }
         });

@@ -16,7 +16,6 @@ div[data-ui="colorsHud"] {
     margin: 20px;
     display: flex;
     justify-content: space-evenly;
-    animation: jerk 0.01s infinite forwards;
 }
 
 .color-hud-color-button {
