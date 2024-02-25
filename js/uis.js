@@ -13,7 +13,7 @@ const id = document.getElementById.bind(document);
 const query = document.querySelector.bind(document);
 
 export const Ui = (id) =>
-    class _Inner extends HasState {
+    class extends HasState {
         static ID = id;
         #self = null;
         #listeners = [];
@@ -24,7 +24,7 @@ export const Ui = (id) =>
         }
 
         get id() {
-            return _Inner.ID;
+            return this.constructor.ID;
         }
 
         dataHidden(on) {
@@ -38,6 +38,10 @@ export const Ui = (id) =>
         hide() {
             this.removeAllListeners();
             this.dataHidden(true);
+        }
+
+        addEventListener(type, cb) {
+            this.addListener(this, type, cb);
         }
 
         addListener(element, type, cb) {
@@ -73,7 +77,7 @@ export class TitleScreen extends Ui("titleScreen") {
 
     hide(to) {
         if (to == Canvas.ID) {
-            this.setButtonsDisabled(true);
+            this.#setButtonsDisabled(true);
 
             new Animate(this.self)
                 .from({ scale: 1 })
@@ -91,7 +95,7 @@ export class TitleScreen extends Ui("titleScreen") {
                     .begin()
                     .then(() => {
                         super.hide();
-                        this.setButtonsDisabled(false);
+                        this.#setButtonsDisabled(false);
                         res();
                     });
             });
@@ -100,7 +104,7 @@ export class TitleScreen extends Ui("titleScreen") {
         }
     }
 
-    setButtonsDisabled(disabled) {
+    #setButtonsDisabled(disabled) {
         this.#holdToQuit.disabled = disabled;
         this.#howToPlay.disabled = disabled;
         this.#start.disabled = disabled;
@@ -114,12 +118,13 @@ export class TitleScreen extends Ui("titleScreen") {
         const fromStart =
             this.state.previousUiId == (ClickToPlay.ID || Canvas.ID);
 
-        if (fromStart) this.state.getAudio("monitorStartup").play();
-
-        this.#humAudio = this.state.getAudio("hum").loop().play();
+        if (fromStart) {
+            this.state.getAudio("monitorStartup").play();
+            this.#humAudio = this.state.getAudio("hum").loop().play();
+        }
 
         this.self.style.opacity = 0;
-        this.setButtonsDisabled(true);
+        this.#setButtonsDisabled(true);
 
         this.dataHidden(false);
 
@@ -130,7 +135,7 @@ export class TitleScreen extends Ui("titleScreen") {
             .easing(EASINGS.CUBIC_IN_OUT)
             .begin()
             .then(() => {
-                this.setButtonsDisabled(false);
+                this.#setButtonsDisabled(false);
             });
     }
 
@@ -149,7 +154,7 @@ export class TitleScreen extends Ui("titleScreen") {
             this.state.uis.dyingNoise.setDeathProgress(e.detail);
         });
         this.addListener(this.#holdToQuit, "completed", () => {
-            this.#humAudio.stop();
+            this.#humAudio?.stop();
             this.state.uis.dyingNoise.reset();
             this.state.getAudio("monitorShutdown").play();
             this.state.changeToUi("clickToPlay");
@@ -183,7 +188,7 @@ export class DyingNoise extends Ui("dyingNoise") {
 
     setDeathProgress(progress) {
         this.self.style.opacity = `${progress}%`;
-        this.#noise.volume(progress / 100);
+        this.#noise.volume(Math.max(Math.min(progress / 100, 100), 0));
     }
 
     reset() {

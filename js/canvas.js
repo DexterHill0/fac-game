@@ -28,6 +28,10 @@ const isWithinRangeOfUserPixel = (x, y, range) => {
     return userPixels.some((p) => p[0] - range <= x && p[1] == y);
 };
 
+const userPixelIndex = (x, y) => {
+    return userPixels.findIndex(([x1, y1]) => x1 == x && y1 == y);
+};
+
 const pixelCoordFromIdx = (idx) => ({
     x: idx % WIDTH,
     y: Math.floor(idx / WIDTH),
@@ -88,18 +92,22 @@ export class Canvas extends Ui("canvas") {
 
     #currentDeathTime = 0;
 
+    #hasMissedFirstPixel = false;
+    #previousUserPixel = 0;
+
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
         return this.#pixels[x][y];
     }
 
-    // bell-curve-like easing that makes the the fading of the pixels slow down very signficantly as it gets closer to the
-    // center pixel, and then speed back up again very quickly
+    // bell-curve-like easing that makes the the fading of the pixels slow down very signficantly as it gets closer to
+    // a given pixel, and then speed back up again very quickly
     #bellCurveEasing(forPixel, userPixel) {
         let t =
             (100 / 2) * Math.exp(-Math.pow((forPixel - userPixel) / 20, 2) / 2);
         return map(t, 1.1, 50, 0.005, 0.08);
     }
+    // calculates the easings for multiple pixels
     #cumulativeEasing(forPixel) {
         return Math.max(
             ...userPixels.map((coord) =>
@@ -117,6 +125,7 @@ export class Canvas extends Ui("canvas") {
 
         if (isWithinRangeOfUserPixel(x, y, this.#colorChangeThreshold)) {
             if (!isUserPixel(x, y)) {
+                // repeat previously saved color
                 this.#pixels[x][y].color = this.#color;
             }
         } else {
@@ -135,6 +144,8 @@ export class Canvas extends Ui("canvas") {
 
     hide() {
         cancelAnimationFrame(this.#currentAnimationCb);
+
+        this.state.uis.colorsHud.hide();
 
         this.#time = 0;
         this.#currentDeathTime = 0;
@@ -170,18 +181,43 @@ export class Canvas extends Ui("canvas") {
                     pixelIdxFromCoord({ x, y }) - 1
                 ).color;
 
-                if (
-                    selectedColor != null &&
-                    selectedColor[0] == correctColor[0] &&
-                    selectedColor[1] == correctColor[1] &&
-                    selectedColor[2] == correctColor[2]
-                ) {
-                    this.#pixels[x][y].color = correctColor;
-                    this.#currentDeathTime -= TIME_TO_DIE / 10;
-                    this.state.uis.colorsHud.selectedColor = null;
+                const currentUserPixel = userPixelIndex(x, y);
+
+                console.log(currentUserPixel);
+
+                if (this.#hasMissedFirstPixel) {
+                    console.log("HEJRE");
+                    this.#hasMissedFirstPixel;
+                    this.#pixels[x][y].color = [176, 141, 46];
                 } else {
-                    this.#pixels[x][y].color = [0, 0, 0];
+                    if (
+                        selectedColor != null &&
+                        selectedColor[0] == correctColor[0] &&
+                        selectedColor[1] == correctColor[1] &&
+                        selectedColor[2] == correctColor[2]
+                    ) {
+                        this.#pixels[x][y].color = correctColor;
+                        this.#currentDeathTime -= TIME_TO_DIE / 10;
+                        this.state.uis.colorsHud.selectedColor = null;
+                    } else {
+                        if (currentUserPixel == 0) {
+                            this.#hasMissedFirstPixel = true;
+                        }
+
+                        this.state.getAudio("miss").play();
+                        this.#pixels[x][y].color = [128, 128, 128];
+                        this.#currentDeathTime += 50;
+                        this.state.uis.colorsHud.selectedColor = null;
+                    }
+                }
+            } else {
+                const selectedColor =
+                    this.state.uis.colorsHud.selectedColor?.color;
+
+                if (selectedColor != null) {
+                    this.state.getAudio("miss").play();
                     this.#currentDeathTime += 50;
+                    this.state.uis.colorsHud.selectedColor = null;
                 }
             }
             this.#nextTime =
@@ -245,6 +281,8 @@ export class Canvas extends Ui("canvas") {
 
     show() {
         super.show();
+        this.state.uis.colorsHud.show();
+
         this.#currentAnimationCb = requestAnimationFrame(this.#draw);
     }
 }

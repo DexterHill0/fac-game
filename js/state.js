@@ -32,6 +32,7 @@ export class GameState {
         monitorShutdown: new AudioSource(
             "../assets/sounds/519981__timbre__simulated-crt-tv-power-offon-remix-of-freesound-519627.wav"
         ),
+        miss: new AudioSource("../assets/sounds/483598__raclure__wrong.wav"),
     };
 
     uis = {

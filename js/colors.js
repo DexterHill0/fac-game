@@ -42,8 +42,11 @@ export class Colors extends Ui("colorsHud") {
         super(state);
     }
 
-    onReady() {
-        document.addEventListener("keydown", (e) => {
+    show() {
+        super.show();
+
+        window.addEventListener("keydown", (e) => {
+            console.log(e.key);
             if (parseInt(e.key) <= this.colors.length) {
                 this.#onSelectedColor(parseInt(e.key));
             }

@@ -33,7 +33,7 @@ body {
 }
 
 *[data-hidden] {
-    display: none;
+    display: none !important;
 }
 
 .noise {
