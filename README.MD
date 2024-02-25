@@ -6,3 +6,7 @@ White Noise -20dBFS 30 Second.wav: https://freesound.org/people/JarredGibb/sound
 hiss and beep.wav: https://freesound.org/people/lartti/sounds/504761/
 simulated CRT TV power off/on [remix of freesound #519627].wav: https://freesound.org/people/Timbre/sounds/519981/
 Wrong: https://freesound.org/people/Raclure/sounds/483598/
+RightAnswer.mp3: https://freesound.org/people/Gronkjaer/sounds/554055/
+Menu Scroll: Selection Sound: 200469\_\_cs279\_\_menu-scroll-selection-sound.wav
+
+challenge_sound: https://www.zapsplat.com/music/abstract-dreamy-blurry-hazy-game-audio-ui-notification-action-lush-reverb-beautiful-2/

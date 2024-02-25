@@ -1,8 +1,12 @@
 export const EASINGS = {
+    SINE_IN: "cubic-bezier(0.12, 0, 0.39, 0)",
+    SINE_OUT: "cubic-bezier(0.61, 1, 0.88, 1)",
     SINE_IN_OUT: "ease-in-out",
     CUBIC_IN_OUT: "cubic-bezier(0.65, 0, 0.35, 1)",
     BACK_IN_OUT: "cubic-bezier(0.68, -0.6, 0.32, 1.6)",
     QUART_IN_OUT: "cubic-bezier(0.76, 0, 0.24, 1)",
+    QUAD_OUT: "cubic-bezier(0.5, 1, 0.89, 1)",
+    QUAD_IN: "cubic-bezier(0.11, 0, 0.5, 0)",
 };
 
 export const FILL = {
@@ -21,6 +25,7 @@ export default class Animate {
     };
     #initial = null;
     #after = [];
+    #keyframes = [];
 
     /**
      *
@@ -45,26 +50,22 @@ export default class Animate {
      */
     fromInitial(props) {
         if (typeof props == "string") {
-            this.#initial = {
+            this.#keyframes.unshift({
                 [props]: getComputedStyle(this.#elem)[props],
-            };
+            });
         } else {
-            this.#initial = {};
+            const initial = {};
             for (let key of props) {
-                this.#initial[key] = getComputedStyle(this.#elem)[key];
+                initial[key] = getComputedStyle(this.#elem)[key];
             }
+            this.#keyframes.unshift({ ...initial });
         }
 
         return this;
     }
 
-    from(definition) {
-        this.#from = definition;
-        return this;
-    }
-
-    to(definition) {
-        this.#to = definition;
+    keyframe(definition) {
+        this.#keyframes.push(definition);
         return this;
     }
 
@@ -134,9 +135,7 @@ export default class Animate {
     }
 
     reverse() {
-        const from = { ...this.#from };
-        this.#from = { ...this.#to };
-        this.#to = from;
+        this.#keyframes.reverse();
         return this;
     }
 
@@ -144,15 +143,12 @@ export default class Animate {
         if (this.#elem != null) {
             const slf = this;
             return new Promise((res) => {
-                const anim = this.#elem.animate(
-                    [this.#initial ?? this.#from ?? {}, this.#to ?? {}],
-                    {
-                        duration: this.#ops.duration,
-                        easing: this.#ops.easing,
-                        iterations: this.#ops.iterations,
-                        fill: this.#ops.fill,
-                    }
-                );
+                const anim = this.#elem.animate(this.#keyframes, {
+                    duration: this.#ops.duration,
+                    easing: this.#ops.easing,
+                    iterations: this.#ops.iterations,
+                    fill: this.#ops.fill,
+                });
 
                 anim.addEventListener("finish", () => res(slf));
                 anim.addEventListener("cancel", () => res(slf));

@@ -83,16 +83,16 @@ export class TitleScreen extends Ui("titleScreen") {
             this.#setButtonsDisabled(true);
 
             new Animate(this.self)
-                .from({ scale: 1 })
-                .to({ scale: 10 })
+                .keyframe({ scale: 1 })
+                .keyframe({ scale: 10 })
                 .duration(0) //6000
                 .easing(EASINGS.QUART_IN_OUT)
                 .begin();
 
             return new Promise((res) => {
                 new Animate(this.self)
-                    .from({ opacity: 1 })
-                    .to({ opacity: 0 })
+                    .keyframe({ opacity: 1 })
+                    .keyframe({ opacity: 0 })
                     .duration(0) // 4000
                     .easing(EASINGS.CUBIC_IN_OUT)
                     .begin()
@@ -136,8 +136,8 @@ export class TitleScreen extends Ui("titleScreen") {
         );
 
         new Animate(this.self)
-            .from({ opacity: 0, scale: 2 })
-            .to({ opacity: 1, scale: 1 })
+            .keyframe({ opacity: 0, scale: 2 })
+            .keyframe({ opacity: 1, scale: 1 })
             .duration(fromStart ? 4000 : 0)
             .easing(EASINGS.CUBIC_IN_OUT)
             .begin()

@@ -1,6 +1,7 @@
 import { random } from "./utils/math.js";
 import { displayTimer } from "./utils/util.js";
 import { Ui } from "./uis.js";
+import Animate, { EASINGS } from "./utils/animate.js";
 
 const EXTRA_COLS = [
     [255, 0, 255],
@@ -30,6 +31,8 @@ function* colorGenerator(minColors, maxColours, colors) {
 export class Colors extends Ui("hud") {
     #bestTime = document.getElementById("hud-best-time");
     #currentTime = 0;
+
+    #dontPress = document.getElementById("hud-dont-press");
 
     #usedColors = [];
     colors = [...STARTING_COLS];
@@ -112,5 +115,77 @@ export class Colors extends Ui("hud") {
         this.#bestTime.replaceChildren(
             document.createTextNode(displayTimer(time))
         );
+    }
+
+    dontPressChallenge(enable) {
+        if (enable) this.#dontPress.removeAttribute("data-hidden");
+        else this.#dontPress.setAttribute("data-hidden", "");
+    }
+
+    createChallengeText(text) {
+        const px = (x) => `${x}px`;
+
+        const THRESHOLD = 100;
+
+        const p = document.createElement("p");
+        p.appendChild(document.createTextNode(text));
+
+        p.style.cssText = `--challenge-text-font-size: ${random(70, 100)}px`;
+        p.classList.add("floating-challenge-text");
+
+        document.body.appendChild(p);
+
+        const duration = random(1500, 2500);
+
+        new Animate(p)
+            .keyframe({
+                left: px(random(0, p.clientWidth)),
+            })
+            .keyframe({
+                left: px(
+                    random(
+                        window.innerWidth - p.clientWidth - THRESHOLD * 2,
+                        window.innerWidth - p.clientWidth
+                    )
+                ),
+            })
+            .duration(duration)
+            .easing(EASINGS.SINE_IN_OUT)
+            .begin();
+
+        new Animate(p)
+            .keyframe({
+                bottom: 0,
+            })
+            .keyframe({
+                bottom: px(
+                    random(
+                        THRESHOLD * 2,
+                        window.innerHeight / 2 + THRESHOLD * 2
+                    )
+                ),
+            })
+            .easing(EASINGS.SINE_OUT)
+            .duration(duration / 2)
+            .begin()
+            .then(() => {
+                new Animate(p)
+                    .fromInitial("bottom")
+                    .keyframe({
+                        bottom: 0,
+                    })
+                    .easing(EASINGS.SINE_IN)
+                    .duration(duration / 2)
+                    .begin();
+            });
+
+        new Animate(p)
+            .keyframe({ opacity: 0 })
+            .keyframe({ opacity: 1 })
+            .keyframe({ opacity: 0 })
+            .easing(EASINGS.SINE_IN_OUT)
+            .duration(duration - 200)
+            .begin()
+            .then(() => p.remove());
     }
 }

@@ -54,3 +54,31 @@ div[data-ui="hud"] {
     align-items: center;
     left: 30px;
 }
+
+.floating-challenge-text {
+    font-size: var(--challenge-text-font-size);
+    color: white;
+    position: absolute;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+.dont-press-container {
+    font-size: 60px;
+    color: white;
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+}
+
+.dont-press-left {
+    position: absolute;
+    left: 100px;
+}
+.dont-press-right {
+    position: absolute;
+    right: 100px;
+}

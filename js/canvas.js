@@ -1,8 +1,5 @@
-import { map, easeInExpo, random, easeInQuart, wrap } from "./utils/math.js";
-// import { STARTING_COLS } from "./hud.js";
-// import Audio from "./utils/audio.js";
+import { map, easeInExpo, random, wrap } from "./utils/math.js";
 import { Ui } from "./uis.js";
-// import { getRandomColor } from "./hud.js";
 
 const PIXEL_SIZE = 60;
 const PIXEL_SPACING = 5;
@@ -14,8 +11,8 @@ const SCREEN_HEIGHT = HEIGHT * PIXEL_SIZE + (HEIGHT - 1) * PIXEL_SPACING;
 // how long before the noise is at its peak
 // the noise does not fade in linearlly
 const TIME_TO_DIE = 2500000;
-const MIN_CHALLENGE_TIME = 12;
-const MAX_CHALLENGE_TIME = 20;
+const MIN_CHALLENGE_TIME = 12; //12
+const MAX_CHALLENGE_TIME = 20; //20
 
 let userPixels = [[Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2)]];
 
@@ -67,8 +64,17 @@ const ALL_CHALLENGES = [
     "speed",
     "decThreshold",
     "filter",
-    // "dontPress",
+    "dontPress",
 ];
+const CHALLENGE_DESCRIPTIONS = {
+    extraPixel: "Extra Pixel!",
+    color: "New Color!",
+    area: "Speed Up!",
+    speed: "Speed Up!",
+    decThreshold: "Randomness++",
+    filter: "Interference...",
+};
+
 let challenges = [...ALL_CHALLENGES];
 
 export class Canvas extends Ui("canvas") {
@@ -111,6 +117,8 @@ export class Canvas extends Ui("canvas") {
 
     #bellCurveArea = 18;
     #litTimeSpeed = 0.12;
+
+    #dontPressChallenge = false;
 
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
@@ -179,6 +187,8 @@ export class Canvas extends Ui("canvas") {
         const index = random(0, challenges.length - 1);
         const challenge = challenges[index];
 
+        this.state.getAudio("challenge").play();
+
         switch (challenge) {
             case "extraPixel":
                 const [x, y] = [random(0, WIDTH - 1), random(0, HEIGHT - 1)];
@@ -205,9 +215,15 @@ export class Canvas extends Ui("canvas") {
                 challenges.splice(index, 1);
                 this.#randomFilter(() => challenges.push("filter"));
                 break;
-            // case "dontPress":
-            //     break;
+            case "dontPress":
+                this.#dontPressChallenge = true;
+                this.state.uis.hud.dontPressChallenge(true);
+                return;
         }
+
+        this.state.uis.hud.createChallengeText(
+            CHALLENGE_DESCRIPTIONS[challenge]
+        );
     }
 
     hide() {
@@ -265,23 +281,37 @@ export class Canvas extends Ui("canvas") {
                     wrap(pixelIdxFromCoord([x, y]) - 1, 0, WIDTH * HEIGHT)
                 ).color;
 
-                if (
-                    selectedColor != null &&
-                    selectedColor[0] == correctColor[0] &&
-                    selectedColor[1] == correctColor[1] &&
-                    selectedColor[2] == correctColor[2]
-                ) {
-                    this.#pixels[x][y].color = correctColor;
-                    this.#currentDeathTime = Math.max(
-                        0,
-                        this.#currentDeathTime - 100
-                    );
-                    this.state.uis.hud.selectedColor = null;
-                } else {
+                const miss = () => {
                     this.state.getAudio("miss").play();
                     this.#pixels[x][y].color = [128, 128, 128];
                     this.#currentDeathTime += 50;
                     this.state.uis.hud.selectedColor = null;
+                };
+                const correct = () => {
+                    this.#pixels[x][y].color = correctColor;
+                    this.#currentDeathTime = Math.max(
+                        0,
+                        this.#currentDeathTime - 1000
+                    );
+                    this.state.uis.hud.selectedColor = null;
+                    this.state.getAudio("correct").play();
+                };
+
+                if (this.#dontPressChallenge) {
+                    if (selectedColor != null) miss();
+                    else correct();
+
+                    this.#dontPressChallenge = false;
+                    this.state.uis.hud.dontPressChallenge(false);
+                } else {
+                    if (
+                        selectedColor != null &&
+                        selectedColor[0] == correctColor[0] &&
+                        selectedColor[1] == correctColor[1] &&
+                        selectedColor[2] == correctColor[2]
+                    )
+                        correct();
+                    else miss();
                 }
             }
 
