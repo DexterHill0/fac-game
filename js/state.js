@@ -11,36 +11,36 @@ export class GameState {
 
     #audios = {
         whitenoise: new AudioSource(
-            "../assets/sounds/249313__jarredgibb__white-noise-20dbfs-30-second.wav"
+            "assets/sounds/249313__jarredgibb__white-noise-20dbfs-30-second.wav"
         ),
         hum: new AudioSource(
-            "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum_modified.mp3"
+            "assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum_modified.mp3"
         ),
         monitorStartup: new AudioSource(
-            "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
+            "assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
         ),
         buttonDown: new AudioSource(
-            "../assets/sounds/412050__eyenorth__button-click_down.wav"
+            "assets/sounds/412050__eyenorth__button-click_down.wav"
         ),
         buttonUp: new AudioSource(
-            "../assets/sounds/412050__eyenorth__button-click_up.wav"
+            "assets/sounds/412050__eyenorth__button-click_up.wav"
         ),
         buttonHover: new AudioSource(
-            "../assets/sounds/540269__zepurple__hover-over-a-button.wav"
+            "assets/sounds/540269__zepurple__hover-over-a-button.wav"
         ),
         beep: new AudioSource(
-            "../assets/sounds/504761__lartti__hiss-and-beep.wav"
+            "assets/sounds/504761__lartti__hiss-and-beep.wav"
         ),
         monitorShutdown: new AudioSource(
-            "../assets/sounds/519981__timbre__simulated-crt-tv-power-offon-remix-of-freesound-519627.wav"
+            "assets/sounds/519981__timbre__simulated-crt-tv-power-offon-remix-of-freesound-519627.wav"
         ),
-        miss: new AudioSource("../assets/sounds/483598__raclure__wrong.wav"),
+        miss: new AudioSource("assets/sounds/483598__raclure__wrong.wav"),
         correct: new AudioSource(
-            "../assets/sounds/554055__gronkjaer__rightanswer_pitched_down.wav"
+            "assets/sounds/554055__gronkjaer__rightanswer_pitched_down.wav"
         ),
-        challenge: new AudioSource("../assets/sounds/challenge_sound.mp3"),
+        challenge: new AudioSource("assets/sounds/challenge_sound.mp3"),
         bg: new AudioSource(
-            "../assets/sounds/561080__unlistenable__life-on-synthwave.wav"
+            "assets/sounds/561080__unlistenable__life-on-synthwave.wav"
         ),
     };
 
