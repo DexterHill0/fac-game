@@ -48,7 +48,7 @@ div[data-ui="titleScreen"] {
 
 /* https://codepen.io/zoite/pen/gwRZzJ */
 .title-screen-heading:after {
-    content: "GAME";
+    content: "SCANLINED";
     position: absolute;
     left: 2px;
     top: 2px;
@@ -58,7 +58,7 @@ div[data-ui="titleScreen"] {
     animation: glitch-title 3s infinite alternate-reverse;
 }
 .title-screen-heading:before {
-    content: "GAME";
+    content: "SCANLINED";
     position: absolute;
     left: -2px;
     top: -2px;

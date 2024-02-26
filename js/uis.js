@@ -85,7 +85,7 @@ export class TitleScreen extends Ui("titleScreen") {
             new Animate(this.self)
                 .keyframe({ scale: 1 })
                 .keyframe({ scale: 10 })
-                .duration(0) //6000
+                .duration(6000)
                 .easing(EASINGS.QUART_IN_OUT)
                 .begin();
 
@@ -93,7 +93,7 @@ export class TitleScreen extends Ui("titleScreen") {
                 new Animate(this.self)
                     .keyframe({ opacity: 1 })
                     .keyframe({ opacity: 0 })
-                    .duration(0) // 4000
+                    .duration(4000)
                     .easing(EASINGS.CUBIC_IN_OUT)
                     .begin()
                     .then(() => {
@@ -123,7 +123,11 @@ export class TitleScreen extends Ui("titleScreen") {
 
         if (fromStart) {
             this.state.getAudio("monitorStartup").play();
-            this.#humAudio = this.state.getAudio("hum").loop().play();
+            this.#humAudio = this.state
+                .getAudio("hum")
+                .volume(0.4)
+                .loop()
+                .play();
         }
 
         this.self.style.opacity = 0;

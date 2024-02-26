@@ -38,7 +38,7 @@ div[data-ui="howToPlay"] {
 
 .how-to-play-content {
     width: 80%;
-    /* text-align: center; */
+    overflow: scroll;
 }
 
 .how-to-play-h2 {

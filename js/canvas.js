@@ -10,7 +10,7 @@ const SCREEN_WIDTH = WIDTH * PIXEL_SIZE + (WIDTH - 1) * PIXEL_SPACING;
 const SCREEN_HEIGHT = HEIGHT * PIXEL_SIZE + (HEIGHT - 1) * PIXEL_SPACING;
 // how long before the noise is at its peak
 // the noise does not fade in linearlly
-const TIME_TO_DIE = 2500000;
+const TIME_TO_DIE = 30000;
 const MIN_CHALLENGE_TIME = 12; //12
 const MAX_CHALLENGE_TIME = 20; //20
 
@@ -30,12 +30,6 @@ const pixelCoordFromIdx = (idx) => ({
 });
 const pixelIdxFromCoord = ([x, y]) => y * WIDTH + x;
 
-const sortPixels = () => {
-    userPixels = userPixels.sort((a, b) =>
-        pixelIdxFromCoord(a) > pixelCoordFromIdx(b) ? -1 : 1
-    );
-};
-
 class Pixel {
     litTime = 0;
     color = [0, 0, 0];
@@ -47,7 +41,7 @@ class Pixel {
 
     // gets the brightness of the pixel from a given time
     brightness(time) {
-        let t = 1 - Math.min(1, Math.max((time - this.litTime) / 3, 0));
+        let t = 1 - Math.min(1, Math.max((time - this.litTime) / 6, 0));
         return Math.pow(t, 2);
     }
 
@@ -120,6 +114,8 @@ export class Canvas extends Ui("canvas") {
 
     #dontPressChallenge = false;
 
+    #bgMusic = null;
+
     #pixelAtIdx(idx) {
         let { x, y } = pixelCoordFromIdx(idx);
         if (y == -1) {
@@ -173,8 +169,8 @@ export class Canvas extends Ui("canvas") {
     #randomFilter(cb) {
         const filters = ["sepia", "contrast", "saturate"];
         const filter = filters[random(0, filters.length)];
-        const percent = random(0, 50);
-        const duration = random(2, 6);
+        const percent = random(15, 50);
+        const duration = random(3, 8);
 
         this.self.style.filter = `${filter}(${percent}%)`;
         setTimeout(() => {
@@ -187,14 +183,13 @@ export class Canvas extends Ui("canvas") {
         const index = random(0, challenges.length - 1);
         const challenge = challenges[index];
 
-        this.state.getAudio("challenge").play();
+        this.state.getAudio("challenge").volume(0.4).play();
 
         switch (challenge) {
             case "extraPixel":
                 const [x, y] = [random(0, WIDTH - 1), random(0, HEIGHT - 1)];
                 if (!userPixels.some((v) => v[0] == x && v[1] == y)) {
                     userPixels.push([x, y]);
-                    sortPixels();
                 }
                 break;
             case "color":
@@ -213,6 +208,7 @@ export class Canvas extends Ui("canvas") {
             case "filter":
                 // dont allow other filters to be applied while there is an active filter
                 challenges.splice(index, 1);
+                // only add filter challenge back to the array once the current filter is done
                 this.#randomFilter(() => challenges.push("filter"));
                 break;
             case "dontPress":
@@ -249,6 +245,8 @@ export class Canvas extends Ui("canvas") {
         this.self.classList.remove("jerk");
         this.state.uis.hud.self.classList.remove("jerk");
 
+        this.#bgMusic.stop();
+
         super.hide();
     }
 
@@ -258,7 +256,7 @@ export class Canvas extends Ui("canvas") {
         const width = this.self.width;
         const height = this.self.height;
 
-        this.#currentDeathTime += 1;
+        this.#currentDeathTime += 0.85;
 
         this.#minChallengeTime -= 0.00008;
         this.#maxChallengeTime -= 0.00008;
@@ -270,7 +268,6 @@ export class Canvas extends Ui("canvas") {
                 random(this.#minChallengeTime, this.#maxChallengeTime);
         }
 
-        // console.log(this.#nextTime);
         if (this.#time >= this.#nextTime) {
             let { x, y } = this.#getLitPixel();
 
@@ -422,6 +419,8 @@ export class Canvas extends Ui("canvas") {
         this.#colorGen = this.state.uis.hud.colorGenerator(5, 9);
 
         this.#startTime = Date.now() / 1000;
+
+        this.#bgMusic = this.state.getAudio("bg").loop().play();
 
         super.show();
     }

@@ -14,7 +14,7 @@ export class GameState {
             "../assets/sounds/249313__jarredgibb__white-noise-20dbfs-30-second.wav"
         ),
         hum: new AudioSource(
-            "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum.flac"
+            "../assets/sounds/721295__timbre__loopable-60hz-synthesized-domestic-video-artifact-vcr-crt-buzz-hum_modified.mp3"
         ),
         monitorStartup: new AudioSource(
             "../assets/sounds/415594__corkob__crt-computer-monitor-startup_shortened.wav"
@@ -39,6 +39,9 @@ export class GameState {
             "../assets/sounds/554055__gronkjaer__rightanswer_pitched_down.wav"
         ),
         challenge: new AudioSource("../assets/sounds/challenge_sound.mp3"),
+        bg: new AudioSource(
+            "../assets/sounds/561080__unlistenable__life-on-synthwave.wav"
+        ),
     };
 
     uis = {
@@ -51,7 +54,7 @@ export class GameState {
     };
 
     constructor() {
-        this.#currentUi = this.uis.titleScreen;
+        this.#currentUi = this.uis.clickToPlay;
         this.#previousUi = this.#currentUi;
 
         this.#currentUi.show();
